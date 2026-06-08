@@ -19,8 +19,13 @@ repositories {
 dependencies {
     intellijPlatform {
         // The IDE we build & test against. Bundled "java" plugin gives us Java PSI.
-        intellijIdeaCommunity("2024.2.5")
+        intellijIdeaCommunity("2025.1.7.1")
         bundledPlugin("com.intellij.java")
+        // Lombok ships only with IDEA Ultimate, so pull it from the Marketplace. This makes it
+        // available in the runIde sandbox (and tests) without adding a <depends> in plugin.xml,
+        // so the published plugin does NOT require Lombok to be installed.
+        // ("Lombook Plugin" is the plugin's real (historically misspelled) Marketplace id.)
+        plugin("Lombook Plugin", "251.29188.36")
 
         testFramework(TestFrameworkType.Platform)
         testFramework(TestFrameworkType.Plugin.Java)
@@ -32,8 +37,11 @@ dependencies {
 intellijPlatform {
     pluginConfiguration {
         ideaVersion {
+            // Built against 2025.1, but the APIs used exist since 2024.2 and it was verified
+            // running on 2024.2.5, so we keep the floor at 242. (This triggers a harmless
+            // "since-build lower than target platform" advisory from verifyPluginProjectConfiguration.)
             sinceBuild = "242"
-            untilBuild = "252.*"
+            untilBuild = "251.*"
         }
     }
 
@@ -52,7 +60,7 @@ intellijPlatform {
 }
 
 kotlin {
-    // The 2024.2 platform runs on JBR 21 and expects plugins compiled to 21.
+    // The 2025.1 platform runs on JBR 21 and expects plugins compiled to 21.
     // Auto-provisioned via foojay if absent.
     jvmToolchain(21)
 }

@@ -47,8 +47,8 @@ is the better tool — this plugin is for interactive, in-editor edits.
 ## Building & running
 
 **Gradle must run on JDK 17–21** (Gradle 8.10.2 can't yet run on JDK 25). The *plugin* is compiled
-to JDK 21 bytecode (matching the 2024.2 platform) via a toolchain that Gradle auto-provisions if
-needed. With SDKMAN:
+to JDK 21 bytecode (matching the 2025.1 platform it builds against) via a toolchain that Gradle
+auto-provisions if needed. With SDKMAN:
 
 ```bash
 sdk use java 21.0.8-tem    # or any 17–21 JDK; then run ./gradlew as usual
