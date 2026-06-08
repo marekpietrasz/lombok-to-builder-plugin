@@ -2,7 +2,7 @@
     <id>com.github.marekpietrasz.lombok2builder</id>
     <name>Lombok To Builder</name>
     <version>0.1.0</version>
-    <vendor email="2077676+marekpietrasz@users.noreply.github.com" url="https://github.com/marekpietrasz/lombok-to-builder-plugin">
+    <vendor url="https://github.com/marekpietrasz/lombok-to-builder-plugin">
         Marek Pietrasz
     </vendor>
 

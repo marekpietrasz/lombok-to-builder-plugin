@@ -85,8 +85,18 @@ folder — a real Gradle + Lombok project — and run the conversions on `Usage.
 
 ## Installing & publishing
 
-See [PUBLISHING.md](PUBLISHING.md) for installing the built zip into any IntelliJ IDEA and for
-publishing to the JetBrains Marketplace (`./gradlew buildPlugin` / `publishPlugin`).
+Install a local build into any IntelliJ IDEA: `./gradlew buildPlugin`, then *Settings → Plugins →
+⚙ → Install Plugin from Disk…* and pick the zip in `build/distributions/`.
+
+Publishing to the JetBrains Marketplace is **one command**:
+
+```bash
+cp publish.env.example publish.env   # fill in token, signing key paths, passphrase (git-ignored)
+./publish.sh                         # builds, tests, signs, and uploads
+```
+
+See [PUBLISHING.md](PUBLISHING.md) for the one-time account/token/signing-key setup and the
+first-release steps.
 
 ## Project layout
 

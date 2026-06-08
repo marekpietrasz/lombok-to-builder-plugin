@@ -22,23 +22,21 @@ To widen IDE compatibility, lower `sinceBuild` / raise `untilBuild` in `build.gr
 1. **Account & vendor.** Sign in at <https://plugins.jetbrains.com> and accept the developer
    agreement. (Optionally create an organization vendor.)
 2. **Marketplace token.** Create a permanent token at
-   <https://plugins.jetbrains.com/author/me/tokens>. Export it locally / in CI:
-   ```bash
-   export PUBLISH_TOKEN=perm:xxxxxxxx
-   ```
+   <https://plugins.jetbrains.com/author/me/tokens>.
 3. **Signing key** (Marketplace requires signed uploads). Generate a private key + certificate:
    ```bash
    openssl genpkey -aes-256-cbc -algorithm RSA -out private_encrypted.pem -pkeyopt rsa_keygen_bits:4096
    openssl req -key private_encrypted.pem -new -x509 -days 3650 -out chain.crt
    ```
-   Then export (newlines preserved):
+4. **Create your `publish.env`** from the template and fill in the token, key/cert paths, and
+   passphrase:
    ```bash
-   export PRIVATE_KEY="$(cat private_encrypted.pem)"
-   export PRIVATE_KEY_PASSWORD="<the passphrase you chose>"
-   export CERTIFICATE_CHAIN="$(cat chain.crt)"
+   cp publish.env.example publish.env   # publish.env is git-ignored
    ```
-   `build.gradle.kts` already wires these into `intellijPlatform { signing { … } }`.
-   **Do not commit the key files** (the repo's `.gitignore` ignores `*.pem`/`*.crt`).
+   `build.gradle.kts` reads these (`PUBLISH_TOKEN`, `PRIVATE_KEY`, `CERTIFICATE_CHAIN`,
+   `PRIVATE_KEY_PASSWORD`) via `intellijPlatform { signing / publishing { … } }`.
+   **Do not commit `publish.env` or the key files** (`.gitignore` covers `publish.env`,
+   `*.env`, `*.pem`, `*.crt`).
 
 ### First version (creates the listing)
 
@@ -48,17 +46,18 @@ The very first upload must go through the web UI so you can pick a name, categor
 2. <https://plugins.jetbrains.com/plugin/add> → upload the zip → choose a category
    (e.g. *Code editing*) → submit. JetBrains reviews new plugins (usually a couple of business days).
 
-### Subsequent versions (automated)
+### Subsequent versions — one command
 
 After the listing exists, bump `version` in `build.gradle.kts`, update `<change-notes>` in
-`src/main/resources/META-INF/plugin.xml`, then:
+`src/main/resources/META-INF/plugin.xml`, then run:
 
 ```bash
-./gradlew verifyPlugin        # run the JetBrains Plugin Verifier first
-./gradlew publishPlugin       # signs (if key env vars set) and uploads using PUBLISH_TOKEN
+./publish.sh
 ```
 
-`publishPlugin` uploads to the **default** release channel. For pre-releases use a channel:
+`publish.sh` loads `publish.env` (or `./publish.sh some-other.env`), then runs
+`clean test verifyPluginProjectConfiguration publishPlugin` — building, signing, and uploading in
+one go. It uploads to the **default** release channel. For pre-releases use a channel:
 add `channels = listOf("beta")` under `intellijPlatform.publishing`, and users add the channel's
 custom repository URL to install it.
 

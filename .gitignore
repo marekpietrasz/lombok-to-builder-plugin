@@ -22,3 +22,7 @@ target/
 *.pem
 *.crt
 *.p12
+
+# Publishing secrets (never commit; the .example is tracked)
+publish.env
+*.env
