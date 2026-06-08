@@ -47,7 +47,8 @@ is the better tool — this plugin is for interactive, in-editor edits.
 ## Building & running
 
 **Gradle must run on JDK 17–21** (Gradle 8.10.2 can't yet run on JDK 25). The *plugin* is compiled
-to JDK 17 bytecode via a toolchain that Gradle auto-provisions if needed. With SDKMAN:
+to JDK 21 bytecode (matching the 2024.2 platform) via a toolchain that Gradle auto-provisions if
+needed. With SDKMAN:
 
 ```bash
 sdk use java 21.0.8-tem    # or any 17–21 JDK; then run ./gradlew as usual
@@ -59,7 +60,16 @@ sdk use java 21.0.8-tem    # or any 17–21 JDK; then run ./gradlew as usual
 ./gradlew buildPlugin   # produce build/distributions/lombok-to-builder-plugin-*.zip
 ```
 
-Install the built zip via *Settings → Plugins → ⚙ → Install Plugin from Disk…*.
+### Try it on the sample project
+
+`./gradlew runIde` launches a sandbox IDE. In it, **File → Open…** the [`sample-project/`](sample-project)
+folder — a real Gradle + Lombok project — and run the conversions on `Usage.java`. See
+[`sample-project/README.md`](sample-project/README.md).
+
+## Installing & publishing
+
+See [PUBLISHING.md](PUBLISHING.md) for installing the built zip into any IntelliJ IDEA and for
+publishing to the JetBrains Marketplace (`./gradlew buildPlugin` / `publishPlugin`).
 
 ## Project layout
 
@@ -70,8 +80,8 @@ src/main/kotlin/.../SettersToBuilderIntention.kt
 src/main/kotlin/.../BuilderConversionEngine.kt   batch (file / range) conversion
 src/main/kotlin/.../ConvertToBuilderAction.kt    editor + Project-view entry point
 src/main/resources/META-INF/plugin.xml
-src/test/kotlin/...                              tests (BasePlatformTestCase)
-examples/                                        before/after sample code
+src/test/kotlin/...                              tests (LightJavaCodeInsightFixtureTestCase)
+sample-project/                                  full Gradle + Lombok project to try the plugin on
 ```
 
 ## Known limitations

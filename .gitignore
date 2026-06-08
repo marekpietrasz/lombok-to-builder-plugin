@@ -17,3 +17,8 @@ target/
 
 # OS
 .DS_Store
+
+# Signing keys / certificates (never commit)
+*.pem
+*.crt
+*.p12

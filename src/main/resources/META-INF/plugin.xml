@@ -18,6 +18,14 @@
         Enabling the Lombok plugin is recommended so generated constructors resolve.
     ]]></description>
 
+    <change-notes><![CDATA[
+        <ul>
+            <li><b>0.1.0</b> — Initial release: constructor &rarr; builder and setters &rarr; builder
+                intentions, plus a batch action for the editor (file/selection) and the Project view
+                (folders/modules/project).</li>
+        </ul>
+    ]]></change-notes>
+
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.java</depends>
 

@@ -36,11 +36,25 @@ intellijPlatform {
             untilBuild = "252.*"
         }
     }
+
+    // Marketplace requires signed plugins. Generate a key/cert once (see PUBLISHING.md) and supply
+    // these via environment variables in CI; locally they are simply absent and signing is skipped.
+    signing {
+        certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN")
+        privateKey = providers.environmentVariable("PRIVATE_KEY")
+        password = providers.environmentVariable("PRIVATE_KEY_PASSWORD")
+    }
+
+    publishing {
+        // Marketplace token from https://plugins.jetbrains.com/author/me/tokens
+        token = providers.environmentVariable("PUBLISH_TOKEN")
+    }
 }
 
 kotlin {
-    // JDK 17 is the baseline for the 2024.2 platform; auto-provisioned via foojay if absent.
-    jvmToolchain(17)
+    // The 2024.2 platform runs on JBR 21 and expects plugins compiled to 21.
+    // Auto-provisioned via foojay if absent.
+    jvmToolchain(21)
 }
 
 tasks {
