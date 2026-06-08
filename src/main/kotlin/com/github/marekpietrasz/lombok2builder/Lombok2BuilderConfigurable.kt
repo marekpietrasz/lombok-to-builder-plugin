@@ -31,7 +31,10 @@ class Lombok2BuilderConfigurable : BoundConfigurable("Lombok To Builder") {
                     .bindIntText(settings::minValues)
             }
             row {
-                comment("Don't convert a usage when fewer than this many (non-null) values would be set.")
+                comment(
+                    "Constructor calls with fewer than this many (non-null) arguments are not " +
+                        "converted. Setter blocks are always converted, regardless of this value.",
+                )
             }
         }
     }

@@ -66,6 +66,7 @@ object LombokBuilderSupport {
         val arguments = newExpression.argumentList?.expressions ?: return null
 
         val valueCalls = constructorValueCalls(psiClass, newExpression, arguments, options) ?: return null
+        // The minimum-values threshold gates constructor conversions only.
         if (valueCalls.size < options.minValues) return null
         return assemble("$className.builder()", valueCalls + ".build()", options.multiline)
     }
@@ -84,7 +85,9 @@ object LombokBuilderSupport {
             val methodName = builderMethodName(psiClass, call.methodExpression.referenceName ?: return null)
             valueCalls += ".$methodName(${value.text})"
         }
-        if (valueCalls.size < options.minValues) return null
+        // Setter blocks are always converted regardless of the minimum-values threshold (that gates
+        // constructor calls only); only bail if nothing would be set (e.g. the lone setter was null).
+        if (valueCalls.isEmpty()) return null
         return assemble("$className.builder()", valueCalls + ".build()", options.multiline)
     }
 

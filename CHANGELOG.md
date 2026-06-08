@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Minimum values to convert** now gates constructor conversions only. Setter blocks are always
+  converted regardless of the threshold (you're explicitly migrating setters, so the count of
+  values no longer suppresses them).
+
 ## [0.2.1] - 2026-06-08
 
 ### Fixed

@@ -24,11 +24,12 @@ public class Usage {
     }
 
     User viaSetters() {
-        User u = new User();
-        u.setId(2L);
-        u.setName("Linus Torvalds");
-        u.setEmail("linus@example.com");
-        u.setActive(false);
+        User u = User.builder()
+                .id(2L)
+                .name("Linus Torvalds")
+                .email("linus@example.com")
+                .active(false)
+                .build();
         return u;
     }
 
@@ -42,19 +43,20 @@ public class Usage {
         return new User(4L, "Bob", null, false);
     }
 
-    // "Minimum values to convert" (default 3): this 2-value usage is left alone by default. Lower
-    // the setting to 2 (or 1) to have the plugin offer the conversion here too.
-    User tooFewValues() {
+    // Setter blocks are always converted, regardless of "Minimum values to convert" (that setting
+    // gates constructor calls only) — so this 2-setter block is offered even with the default of 3.
+    User fewSetters() {
         User u = new User();
         u.setId(5L);
         u.setName("Carol");
         return u;
     }
 
-    // The Fee(String) constructor's parameter (category) doesn't match the field (feeCategory),
-    // so the plugin intentionally does NOT offer to convert this one.
+    // The Fee convenience constructor's parameters (category, value, ...) don't match the fields
+    // (feeCategory, amount, ...). It takes four arguments, so the minimum-values threshold is met —
+    // the plugin still does NOT offer to convert it, purely because the names don't map to fields.
     Fee handWrittenConstructor() {
-        return new Fee("LATE");
+        return new Fee("LATE", 10, "USD", "Late fee");
     }
 
     public static void main(String[] args) {

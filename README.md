@@ -56,9 +56,10 @@ Compatible with **IntelliJ IDEA 2024.2 and newer** (no upper version bound).
   ```
 - **Skip setting null values** (default: **on**) — drops `.x(null)` calls from the generated chain,
   so `new User(1L, "Ada", null, true)` becomes `User.builder().id(1L).name("Ada").active(true).build()`.
-- **Minimum values to convert** (default: **3**) — the conversion is only offered when at least this
-  many (non-null) values would be set, so trivial 1–2 value usages aren't converted. Set it to `1`
-  to always offer it.
+- **Minimum values to convert** (default: **3**) — applies to **constructor calls only**: a
+  `new Foo(...)` with fewer than this many (non-null) arguments isn't converted, so trivial 1–2
+  value constructors are left alone. **Setter blocks are always converted**, regardless of this
+  setting. Set it to `1` to convert every constructor call.
 
 ## Why a plugin (and not SSR / OpenRewrite)?
 

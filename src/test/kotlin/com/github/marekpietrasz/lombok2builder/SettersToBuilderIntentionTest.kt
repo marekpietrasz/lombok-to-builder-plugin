@@ -129,8 +129,10 @@ class SettersToBuilderIntentionTest : LombokBuilderTestCase() {
         )
     }
 
-    fun testNotAvailableBelowMinValues() {
-        setMinValues(3)
+    fun testMinValuesDoesNotBlockSetters() {
+        // The minimum-values threshold gates constructor calls only; setter blocks always convert.
+        setMultiline(false)
+        setMinValues(5)
         myFixture.configureByText(
             "Demo.java",
             """
@@ -150,7 +152,23 @@ class SettersToBuilderIntentionTest : LombokBuilderTestCase() {
             """.trimIndent(),
         )
 
-        assertEmpty(myFixture.filterAvailableIntentions(intentionName))
+        myFixture.launchAction(myFixture.findSingleIntention(intentionName))
+
+        myFixture.checkResult(
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                void setA(int a) {}
+                void setB(String b) {}
+
+                static void use() {
+                    Demo d = Demo.builder().a(1).b("x").build();
+                }
+            }
+            """.trimIndent(),
+        )
     }
 
     fun testBooleanIsPrefixedFieldUsesFieldNameAsBuilderMethod() {
