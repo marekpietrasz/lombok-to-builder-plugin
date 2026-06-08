@@ -1,0 +1,19 @@
+# Build output
+build/
+out/
+target/
+
+# Gradle
+.gradle/
+
+# IntelliJ Platform Gradle Plugin local artifacts
+.intellijPlatform/
+
+# IntelliJ IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store

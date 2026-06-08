@@ -1,0 +1,13 @@
+<html>
+<body>
+Folds a local variable declaration followed by setter calls into a single Lombok builder chain.
+<!-- tooltip end -->
+<p>Example:</p>
+<pre><code>Foo f = new Foo();
+f.setA(1);
+f.setB("x");</code></pre>
+<p>becomes</p>
+<pre><code>Foo f = Foo.builder().a(1).b("x").build();</code></pre>
+<p>Only offered when the target class is annotated with <code>@Builder</code> or <code>@SuperBuilder</code>.</p>
+</body>
+</html>

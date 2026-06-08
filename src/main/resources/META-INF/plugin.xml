@@ -1,0 +1,48 @@
+<idea-plugin>
+    <id>com.github.marekpietrasz.lombok2builder</id>
+    <name>Lombok To Builder</name>
+    <version>0.1.0</version>
+    <vendor email="2077676+marekpietrasz@users.noreply.github.com" url="https://github.com/marekpietrasz/lombok-to-builder-plugin">
+        Marek Pietrasz
+    </vendor>
+
+    <description><![CDATA[
+        Converts constructor calls and setter blocks into the Lombok-generated builder pattern.
+        <ul>
+            <li>Place the caret on a <code>new Foo(...)</code> call and convert it to <code>Foo.builder()....build()</code>.</li>
+            <li>Place the caret on a <code>Foo f = new Foo(); f.setX(...); ...</code> block and fold it into a single builder chain.</li>
+            <li>Right-click in the editor (no selection = whole file, selection = that range) or on a folder/module/project
+                in the Project view to batch-convert every applicable usage.</li>
+        </ul>
+        Actions only appear when the target class carries Lombok's <code>@Builder</code> (or <code>@SuperBuilder</code>).
+        Enabling the Lombok plugin is recommended so generated constructors resolve.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.java</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <intentionAction>
+            <language>JAVA</language>
+            <className>com.github.marekpietrasz.lombok2builder.ConstructorToBuilderIntention</className>
+            <category>Lombok</category>
+        </intentionAction>
+        <intentionAction>
+            <language>JAVA</language>
+            <className>com.github.marekpietrasz.lombok2builder.SettersToBuilderIntention</className>
+            <category>Lombok</category>
+        </intentionAction>
+
+        <notificationGroup id="Lombok To Builder" displayType="BALLOON"/>
+    </extensions>
+
+    <actions>
+        <action id="lombok2builder.ConvertToBuilder"
+                class="com.github.marekpietrasz.lombok2builder.ConvertToBuilderAction"
+                text="Convert Lombok Usages to Builder"
+                description="Convert constructor and setter usages of @Builder classes to the builder pattern">
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>

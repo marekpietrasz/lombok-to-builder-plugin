@@ -1,0 +1,11 @@
+<html>
+<body>
+Converts a constructor call of a Lombok <code>@Builder</code> class into the equivalent builder chain.
+<!-- tooltip end -->
+<p>Example:</p>
+<pre><code>Foo f = new Foo(1, "x");</code></pre>
+<p>becomes</p>
+<pre><code>Foo f = Foo.builder().a(1).b("x").build();</code></pre>
+<p>Only offered when the target class is annotated with <code>@Builder</code> or <code>@SuperBuilder</code>.</p>
+</body>
+</html>
