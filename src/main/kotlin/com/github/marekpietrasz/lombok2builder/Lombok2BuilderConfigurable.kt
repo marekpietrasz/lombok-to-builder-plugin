@@ -2,6 +2,7 @@ package com.github.marekpietrasz.lombok2builder
 
 import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.ui.DialogPanel
+import com.intellij.ui.dsl.builder.bindIntText
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
 
@@ -17,6 +18,20 @@ class Lombok2BuilderConfigurable : BoundConfigurable("Lombok To Builder") {
             }
             row {
                 comment("When disabled, the whole builder chain is generated on a single line.")
+            }
+            row {
+                checkBox("Skip setting null values")
+                    .bindSelected(settings::skipNullValues)
+            }
+            row {
+                comment("Drops <code>.x(null)</code> calls from the generated chain.")
+            }
+            row("Minimum values to convert:") {
+                intTextField(range = 0..999)
+                    .bindIntText(settings::minValues)
+            }
+            row {
+                comment("Don't convert a usage when fewer than this many (non-null) values would be set.")
             }
         }
     }

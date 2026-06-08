@@ -54,6 +54,11 @@ Compatible with **IntelliJ IDEA 2024.2 and newer** (no upper version bound).
   ```java
   User.builder().id(1L).name("Ada").build();
   ```
+- **Skip setting null values** (default: **on**) — drops `.x(null)` calls from the generated chain,
+  so `new User(1L, "Ada", null, true)` becomes `User.builder().id(1L).name("Ada").active(true).build()`.
+- **Minimum values to convert** (default: **3**) — the conversion is only offered when at least this
+  many (non-null) values would be set, so trivial 1–2 value usages aren't converted. Set it to `1`
+  to always offer it.
 
 ## Why a plugin (and not SSR / OpenRewrite)?
 

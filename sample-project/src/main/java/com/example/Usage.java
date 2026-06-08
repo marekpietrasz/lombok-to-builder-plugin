@@ -35,6 +35,21 @@ public class Usage {
         return new Order("ORD-1", new User(3L, "Grace Hopper", "grace@example.com", true), new BigDecimal("42.00"));
     }
 
+    // "Skip setting null values" (Settings → Tools → Lombok To Builder, default ON): the null email
+    // is dropped, so this converts to User.builder().id(4L).name("Bob").active(false).build().
+    User withNullValue() {
+        return new User(4L, "Bob", null, false);
+    }
+
+    // "Minimum values to convert" (default 3): this 2-value usage is left alone by default. Lower
+    // the setting to 2 (or 1) to have the plugin offer the conversion here too.
+    User tooFewValues() {
+        User u = new User();
+        u.setId(5L);
+        u.setName("Carol");
+        return u;
+    }
+
     public static void main(String[] args) {
         Usage usage = new Usage();
         System.out.println(usage.viaConstructor());

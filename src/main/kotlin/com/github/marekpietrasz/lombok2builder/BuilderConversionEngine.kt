@@ -24,7 +24,7 @@ object BuilderConversionEngine {
         val project = file.project
         val factory = JavaPsiFacade.getElementFactory(project)
         val pointerManager = SmartPointerManager.getInstance(project)
-        val multiline = Lombok2BuilderSettings.getInstance().multiline
+        val options = ConversionOptions.fromSettings()
         var converted = 0
 
         // Phase 1: setter chains (declaration + trailing setters). Resolve via smart pointers so
@@ -37,7 +37,7 @@ object BuilderConversionEngine {
         for (pointer in chainVariables) {
             val variable = pointer.element ?: continue
             val chain = LombokBuilderSupport.collectChain(variable) ?: continue
-            if (LombokBuilderSupport.applyChain(chain, factory, multiline)) converted++
+            if (LombokBuilderSupport.applyChain(chain, factory, options)) converted++
         }
 
         // Phase 2: remaining standalone constructor calls (with arguments). Innermost-first so that
@@ -52,7 +52,7 @@ object BuilderConversionEngine {
         for (pointer in newExpressions) {
             val newExpression = pointer.element ?: continue
             if (!newExpression.isValid) continue
-            if (LombokBuilderSupport.applyConstructor(newExpression, factory, multiline)) converted++
+            if (LombokBuilderSupport.applyConstructor(newExpression, factory, options)) converted++
         }
 
         return converted

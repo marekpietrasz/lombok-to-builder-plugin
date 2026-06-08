@@ -17,14 +17,13 @@ class ConstructorToBuilderIntention : PsiElementBaseIntentionAction() {
 
     override fun isAvailable(project: Project, editor: Editor?, element: PsiElement): Boolean {
         val newExpression = findNewExpression(element) ?: return false
-        // Layout doesn't affect convertibility, so any value works here.
-        return LombokBuilderSupport.constructorToBuilderText(newExpression, multiline = false) != null
+        // Respect settings (min-values / skip-nulls) so the intention is hidden when it wouldn't convert.
+        return LombokBuilderSupport.constructorToBuilderText(newExpression, ConversionOptions.fromSettings()) != null
     }
 
     override fun invoke(project: Project, editor: Editor?, element: PsiElement) {
         val newExpression = findNewExpression(element) ?: return
-        val multiline = Lombok2BuilderSettings.getInstance().multiline
-        LombokBuilderSupport.applyConstructor(newExpression, JavaPsiFacade.getElementFactory(project), multiline)
+        LombokBuilderSupport.applyConstructor(newExpression, JavaPsiFacade.getElementFactory(project), ConversionOptions.fromSettings())
     }
 
     private fun findNewExpression(element: PsiElement): PsiNewExpression? =

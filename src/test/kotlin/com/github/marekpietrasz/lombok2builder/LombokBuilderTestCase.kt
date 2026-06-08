@@ -8,12 +8,18 @@ abstract class LombokBuilderTestCase : LightJavaCodeInsightFixtureTestCase() {
     override fun setUp() {
         super.setUp()
         myFixture.addClass("package lombok;\npublic @interface Builder {}")
+        // Most tests use 1-2 values; lower the threshold so the default (3) doesn't suppress them.
+        // Threshold-specific tests set it explicitly.
+        setMinValues(1)
     }
 
     override fun tearDown() {
         try {
-            // Application-level settings persist across tests; restore the default.
-            Lombok2BuilderSettings.getInstance().multiline = true
+            // Application-level settings persist across tests; restore the defaults.
+            val settings = Lombok2BuilderSettings.getInstance()
+            settings.multiline = true
+            settings.skipNullValues = true
+            settings.minValues = 3
         } finally {
             super.tearDown()
         }
@@ -21,5 +27,13 @@ abstract class LombokBuilderTestCase : LightJavaCodeInsightFixtureTestCase() {
 
     protected fun setMultiline(value: Boolean) {
         Lombok2BuilderSettings.getInstance().multiline = value
+    }
+
+    protected fun setSkipNullValues(value: Boolean) {
+        Lombok2BuilderSettings.getInstance().skipNullValues = value
+    }
+
+    protected fun setMinValues(value: Int) {
+        Lombok2BuilderSettings.getInstance().minValues = value
     }
 }

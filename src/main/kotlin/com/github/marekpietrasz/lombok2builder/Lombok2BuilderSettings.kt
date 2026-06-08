@@ -14,6 +14,10 @@ class Lombok2BuilderSettings : PersistentStateComponent<Lombok2BuilderSettings.S
     data class State(
         /** When true, each builder call is generated on its own line. Defaults to true. */
         var multiline: Boolean = true,
+        /** When true, `.x(null)` calls are dropped from the generated chain. Defaults to true. */
+        var skipNullValues: Boolean = true,
+        /** Don't convert when fewer than this many (non-null) values would be set. Defaults to 3. */
+        var minValues: Int = 3,
     )
 
     private var state = State()
@@ -28,6 +32,18 @@ class Lombok2BuilderSettings : PersistentStateComponent<Lombok2BuilderSettings.S
         get() = state.multiline
         set(value) {
             state.multiline = value
+        }
+
+    var skipNullValues: Boolean
+        get() = state.skipNullValues
+        set(value) {
+            state.skipNullValues = value
+        }
+
+    var minValues: Int
+        get() = state.minValues
+        set(value) {
+            state.minValues = value
         }
 
     companion object {

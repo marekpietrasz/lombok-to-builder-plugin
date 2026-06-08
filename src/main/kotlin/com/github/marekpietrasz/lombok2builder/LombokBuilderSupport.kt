@@ -7,6 +7,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.PsiExpression
 import com.intellij.psi.PsiExpressionStatement
+import com.intellij.psi.PsiLiteralExpression
 import com.intellij.psi.PsiLocalVariable
 import com.intellij.psi.PsiMethodCallExpression
 import com.intellij.psi.PsiModifierListOwner
@@ -14,14 +15,15 @@ import com.intellij.psi.PsiNewExpression
 import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.codeStyle.CodeStyleManager
+import com.intellij.psi.util.PsiUtil
 
 /**
  * Pure-ish helpers around detecting Lombok `@Builder` classes and turning constructor / setter
  * usages into the equivalent builder chain. Functions that read PSI must run under a read action;
  * the `apply*` functions mutate PSI and must run under a write action.
  *
- * When `multiline` is true, each `.method(...)` call (and `.build()`) is placed on its own line and
- * the result is reformatted so indentation follows the project's code style.
+ * [ConversionOptions] controls the output: line layout, whether `.x(null)` calls are dropped, and
+ * the minimum number of (non-null) values required before a usage is converted at all.
  */
 object LombokBuilderSupport {
 
@@ -53,55 +55,64 @@ object LombokBuilderSupport {
 
     /**
      * Text for converting a constructor call to a builder chain, or null when not safely convertible
-     * (no `@Builder`, anonymous/array creation, or arguments that can't be mapped to parameter names).
+     * (no `@Builder`, anonymous/array creation, arguments that can't be mapped to parameter names,
+     * or fewer than [ConversionOptions.minValues] values once nulls are dropped).
      */
-    fun constructorToBuilderText(newExpression: PsiNewExpression, multiline: Boolean): String? {
+    fun constructorToBuilderText(newExpression: PsiNewExpression, options: ConversionOptions): String? {
         if (newExpression.anonymousClass != null) return null
         val psiClass = resolveClass(newExpression) ?: return null
         if (!hasBuilder(psiClass)) return null
         val className = psiClass.name ?: return null
         val arguments = newExpression.argumentList?.expressions ?: return null
 
-        val calls = mutableListOf<String>()
-        if (!appendArgumentCalls(calls, newExpression, arguments)) return null
-        calls += ".build()"
-        return assemble("$className.builder()", calls, multiline)
+        val valueCalls = constructorValueCalls(newExpression, arguments, options) ?: return null
+        if (valueCalls.size < options.minValues) return null
+        return assemble("$className.builder()", valueCalls + ".build()", options.multiline)
     }
 
     /** Text for folding a setter chain into a builder chain, or null when not convertible. */
-    fun chainToBuilderText(chain: SetterChain, multiline: Boolean): String? {
+    fun chainToBuilderText(chain: SetterChain, options: ConversionOptions): String? {
         val className = resolveClass(chain.newExpression)?.name ?: return null
         val arguments = chain.newExpression.argumentList?.expressions ?: emptyArray()
 
-        val calls = mutableListOf<String>()
-        if (!appendArgumentCalls(calls, chain.newExpression, arguments)) return null
+        val valueCalls = constructorValueCalls(chain.newExpression, arguments, options)?.toMutableList()
+            ?: return null
         for (call in chain.setterCalls) {
-            val fieldName = builderFieldName(call.methodExpression.referenceName ?: return null)
             val value = call.argumentList.expressions.firstOrNull() ?: return null
-            calls += ".$fieldName(${value.text})"
+            if (options.skipNullValues && isNullLiteral(value)) continue
+            val fieldName = builderFieldName(call.methodExpression.referenceName ?: return null)
+            valueCalls += ".$fieldName(${value.text})"
         }
-        calls += ".build()"
-        return assemble("$className.builder()", calls, multiline)
+        if (valueCalls.size < options.minValues) return null
+        return assemble("$className.builder()", valueCalls + ".build()", options.multiline)
+    }
+
+    /** `.param(arg)` call strings for constructor arguments (null args dropped per options), or null
+     *  when arguments can't be mapped to parameter names. */
+    private fun constructorValueCalls(
+        newExpression: PsiNewExpression,
+        arguments: Array<out PsiExpression>,
+        options: ConversionOptions,
+    ): List<String>? {
+        if (arguments.isEmpty()) return emptyList()
+        val parameters = newExpression.resolveConstructor()?.parameterList?.parameters ?: return null
+        // Bail on varargs / mismatches where positional->name mapping is ambiguous.
+        if (parameters.size != arguments.size) return null
+        val calls = mutableListOf<String>()
+        for (i in arguments.indices) {
+            if (options.skipNullValues && isNullLiteral(arguments[i])) continue
+            calls += ".${parameters[i].name}(${arguments[i].text})"
+        }
+        return calls
     }
 
     /** Joins the builder calls onto one line, or one call per line when [multiline]. */
     private fun assemble(prefix: String, calls: List<String>, multiline: Boolean): String =
         if (multiline) (listOf(prefix) + calls).joinToString("\n") else prefix + calls.joinToString("")
 
-    /** Appends `.param(arg)` call strings for constructor arguments; false if they can't be mapped. */
-    private fun appendArgumentCalls(
-        calls: MutableList<String>,
-        newExpression: PsiNewExpression,
-        arguments: Array<out PsiExpression>,
-    ): Boolean {
-        if (arguments.isEmpty()) return true
-        val parameters = newExpression.resolveConstructor()?.parameterList?.parameters ?: return false
-        // Bail on varargs / mismatches where positional->name mapping is ambiguous.
-        if (parameters.size != arguments.size) return false
-        for (i in arguments.indices) {
-            calls += ".${parameters[i].name}(${arguments[i].text})"
-        }
-        return true
+    private fun isNullLiteral(expression: PsiExpression): Boolean {
+        val unwrapped = PsiUtil.skipParenthesizedExprDown(expression) ?: return false
+        return unwrapped is PsiLiteralExpression && unwrapped.text == "null"
     }
 
     /** Lombok builder method name for a setter: `setFooBar` -> `fooBar`. */
@@ -147,21 +158,21 @@ object LombokBuilderSupport {
     }
 
     /** Replaces a constructor call with its builder chain. Returns false if not convertible. */
-    fun applyConstructor(newExpression: PsiNewExpression, factory: PsiElementFactory, multiline: Boolean): Boolean {
-        val text = constructorToBuilderText(newExpression, multiline) ?: return false
+    fun applyConstructor(newExpression: PsiNewExpression, factory: PsiElementFactory, options: ConversionOptions): Boolean {
+        val text = constructorToBuilderText(newExpression, options) ?: return false
         val replaced = newExpression.replace(factory.createExpressionFromText(text, newExpression))
-        if (multiline) reformat(replaced)
+        if (options.multiline) reformat(replaced)
         return true
     }
 
     /** Folds a setter chain into a single builder declaration. Returns false if not convertible. */
-    fun applyChain(chain: SetterChain, factory: PsiElementFactory, multiline: Boolean): Boolean {
-        val text = chainToBuilderText(chain, multiline) ?: return false
+    fun applyChain(chain: SetterChain, factory: PsiElementFactory, options: ConversionOptions): Boolean {
+        val text = chainToBuilderText(chain, options) ?: return false
         val declaration = chain.declarationStatement
         val newInitializer = factory.createExpressionFromText(text, chain.variable)
         chain.variable.initializer?.replace(newInitializer) ?: return false
         for (statement in chain.setterStatements) statement.delete()
-        if (multiline) reformat(declaration)
+        if (options.multiline) reformat(declaration)
         return true
     }
 

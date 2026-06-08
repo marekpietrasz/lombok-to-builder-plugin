@@ -20,13 +20,15 @@ class SettersToBuilderIntention : PsiElementBaseIntentionAction() {
 
     override fun getText(): String = familyName
 
-    override fun isAvailable(project: Project, editor: Editor?, element: PsiElement): Boolean =
-        findChain(element) != null
+    override fun isAvailable(project: Project, editor: Editor?, element: PsiElement): Boolean {
+        val chain = findChain(element) ?: return false
+        // Respect settings (min-values / skip-nulls) so the intention is hidden when it wouldn't convert.
+        return LombokBuilderSupport.chainToBuilderText(chain, ConversionOptions.fromSettings()) != null
+    }
 
     override fun invoke(project: Project, editor: Editor?, element: PsiElement) {
         val chain = findChain(element) ?: return
-        val multiline = Lombok2BuilderSettings.getInstance().multiline
-        LombokBuilderSupport.applyChain(chain, JavaPsiFacade.getElementFactory(project), multiline)
+        LombokBuilderSupport.applyChain(chain, JavaPsiFacade.getElementFactory(project), ConversionOptions.fromSettings())
     }
 
     private fun findChain(element: PsiElement): LombokBuilderSupport.SetterChain? {

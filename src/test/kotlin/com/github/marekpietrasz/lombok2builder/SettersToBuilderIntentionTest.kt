@@ -86,6 +86,73 @@ class SettersToBuilderIntentionTest : LombokBuilderTestCase() {
         )
     }
 
+    fun testSkipsNullSetterValuesByDefault() {
+        setMultiline(false)
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                void setA(int a) {}
+                void setB(String b) {}
+                void setC(String c) {}
+
+                static void use() {
+                    Demo d = new De<caret>mo();
+                    d.setA(1);
+                    d.setB(null);
+                    d.setC("x");
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.launchAction(myFixture.findSingleIntention(intentionName))
+
+        myFixture.checkResult(
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                void setA(int a) {}
+                void setB(String b) {}
+                void setC(String c) {}
+
+                static void use() {
+                    Demo d = Demo.builder().a(1).c("x").build();
+                }
+            }
+            """.trimIndent(),
+        )
+    }
+
+    fun testNotAvailableBelowMinValues() {
+        setMinValues(3)
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                void setA(int a) {}
+                void setB(String b) {}
+
+                static void use() {
+                    Demo d = new De<caret>mo();
+                    d.setA(1);
+                    d.setB("x");
+                }
+            }
+            """.trimIndent(),
+        )
+
+        assertEmpty(myFixture.filterAvailableIntentions(intentionName))
+    }
+
     fun testAvailableFromSetterCall() {
         myFixture.configureByText(
             "Demo.java",
