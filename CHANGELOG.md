@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Setter conversion now uses the backing field name for the builder method, fixing primitive
   `boolean isFoo` fields whose setter is `setFoo` but whose builder method is `isFoo` (previously
   produced an invalid `.foo(...)` call).
+- Constructor conversion now requires every parameter to match a field. A hand-written constructor
+  whose parameter names differ from the fields (e.g. `category` for field `feeCategory`) is left
+  unconverted instead of emitting an invalid `.category(...)` call — including constructor + setter
+  blocks, which are left untouched rather than dropping the constructor's values.
 
 ## [0.2.0] - 2026-06-08
 

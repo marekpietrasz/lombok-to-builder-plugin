@@ -200,6 +200,78 @@ class SettersToBuilderIntentionTest : LombokBuilderTestCase() {
         )
     }
 
+    fun testConvertsConstructorWithArgsPlusSetters() {
+        setMultiline(false)
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                int id;
+                String name;
+
+                Demo(int id) {}
+                void setName(String name) {}
+
+                static void use() {
+                    Demo d = new De<caret>mo(5);
+                    d.setName("x");
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.launchAction(myFixture.findSingleIntention(intentionName))
+
+        myFixture.checkResult(
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                int id;
+                String name;
+
+                Demo(int id) {}
+                void setName(String name) {}
+
+                static void use() {
+                    Demo d = Demo.builder().id(5).name("x").build();
+                }
+            }
+            """.trimIndent(),
+        )
+    }
+
+    fun testNotAvailableWhenConstructorParamMismatchesField() {
+        // Constructor param `category` doesn't match field `feeCategory`, so the whole block
+        // (constructor + setters) is left unconverted rather than dropping the constructor's value.
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                String feeCategory;
+                String name;
+
+                Demo(String category) {}
+                void setName(String name) {}
+
+                static void use() {
+                    Demo d = new De<caret>mo("cat");
+                    d.setName("x");
+                }
+            }
+            """.trimIndent(),
+        )
+
+        assertEmpty(myFixture.filterAvailableIntentions(intentionName))
+    }
+
     fun testAvailableFromSetterCall() {
         myFixture.configureByText(
             "Demo.java",

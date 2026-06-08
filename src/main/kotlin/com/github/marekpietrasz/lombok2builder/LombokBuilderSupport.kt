@@ -65,7 +65,7 @@ object LombokBuilderSupport {
         val className = psiClass.name ?: return null
         val arguments = newExpression.argumentList?.expressions ?: return null
 
-        val valueCalls = constructorValueCalls(newExpression, arguments, options) ?: return null
+        val valueCalls = constructorValueCalls(psiClass, newExpression, arguments, options) ?: return null
         if (valueCalls.size < options.minValues) return null
         return assemble("$className.builder()", valueCalls + ".build()", options.multiline)
     }
@@ -76,7 +76,7 @@ object LombokBuilderSupport {
         val className = psiClass.name ?: return null
         val arguments = chain.newExpression.argumentList?.expressions ?: emptyArray()
 
-        val valueCalls = constructorValueCalls(chain.newExpression, arguments, options)?.toMutableList()
+        val valueCalls = constructorValueCalls(psiClass, chain.newExpression, arguments, options)?.toMutableList()
             ?: return null
         for (call in chain.setterCalls) {
             val value = call.argumentList.expressions.firstOrNull() ?: return null
@@ -91,6 +91,7 @@ object LombokBuilderSupport {
     /** `.param(arg)` call strings for constructor arguments (null args dropped per options), or null
      *  when arguments can't be mapped to parameter names. */
     private fun constructorValueCalls(
+        psiClass: PsiClass,
         newExpression: PsiNewExpression,
         arguments: Array<out PsiExpression>,
         options: ConversionOptions,
@@ -99,6 +100,11 @@ object LombokBuilderSupport {
         val parameters = newExpression.resolveConstructor()?.parameterList?.parameters ?: return null
         // Bail on varargs / mismatches where positional->name mapping is ambiguous.
         if (parameters.size != arguments.size) return null
+        // The builder method for a constructor argument is the field named after the parameter.
+        // A hand-written constructor may use parameter names that don't match the fields (e.g.
+        // parameter `category` backing field `feeCategory`, often assigning via a setter); we can't
+        // map those safely, so refuse to convert rather than emit an invalid `.category(...)` call.
+        if (parameters.any { psiClass.findFieldByName(it.name, true) == null }) return null
         val calls = mutableListOf<String>()
         for (i in arguments.indices) {
             if (options.skipNullValues && isNullLiteral(arguments[i])) continue

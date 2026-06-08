@@ -12,6 +12,9 @@ class ConstructorToBuilderIntentionTest : LombokBuilderTestCase() {
             import lombok.Builder;
 
             class Demo {
+                int a;
+                String b;
+
                 @Builder
                 Demo(int a, String b) {}
 
@@ -29,6 +32,9 @@ class ConstructorToBuilderIntentionTest : LombokBuilderTestCase() {
             import lombok.Builder;
 
             class Demo {
+                int a;
+                String b;
+
                 @Builder
                 Demo(int a, String b) {}
 
@@ -47,6 +53,9 @@ class ConstructorToBuilderIntentionTest : LombokBuilderTestCase() {
             import lombok.Builder;
 
             class Demo {
+                int a;
+                String b;
+
                 @Builder
                 Demo(int a, String b) {}
 
@@ -64,6 +73,9 @@ class ConstructorToBuilderIntentionTest : LombokBuilderTestCase() {
             import lombok.Builder;
 
             class Demo {
+                int a;
+                String b;
+
                 @Builder
                 Demo(int a, String b) {}
 
@@ -86,6 +98,10 @@ class ConstructorToBuilderIntentionTest : LombokBuilderTestCase() {
             import lombok.Builder;
 
             class Demo {
+                int a;
+                String b;
+                String c;
+
                 @Builder
                 Demo(int a, String b, String c) {}
 
@@ -103,6 +119,10 @@ class ConstructorToBuilderIntentionTest : LombokBuilderTestCase() {
             import lombok.Builder;
 
             class Demo {
+                int a;
+                String b;
+                String c;
+
                 @Builder
                 Demo(int a, String b, String c) {}
 
@@ -123,6 +143,10 @@ class ConstructorToBuilderIntentionTest : LombokBuilderTestCase() {
             import lombok.Builder;
 
             class Demo {
+                int a;
+                String b;
+                String c;
+
                 @Builder
                 Demo(int a, String b, String c) {}
 
@@ -140,6 +164,10 @@ class ConstructorToBuilderIntentionTest : LombokBuilderTestCase() {
             import lombok.Builder;
 
             class Demo {
+                int a;
+                String b;
+                String c;
+
                 @Builder
                 Demo(int a, String b, String c) {}
 
@@ -159,6 +187,9 @@ class ConstructorToBuilderIntentionTest : LombokBuilderTestCase() {
             import lombok.Builder;
 
             class Demo {
+                int a;
+                String b;
+
                 @Builder
                 Demo(int a, String b) {}
 
@@ -172,11 +203,36 @@ class ConstructorToBuilderIntentionTest : LombokBuilderTestCase() {
         assertEmpty(myFixture.filterAvailableIntentions(intentionName))
     }
 
+    fun testNotAvailableWhenParameterDoesNotMatchField() {
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                String feeCategory;
+
+                // Hand-written constructor: parameter `category` does not match field `feeCategory`.
+                Demo(String category) {}
+
+                static Demo make() {
+                    return new De<caret>mo("x");
+                }
+            }
+            """.trimIndent(),
+        )
+
+        assertEmpty(myFixture.filterAvailableIntentions(intentionName))
+    }
+
     fun testNotAvailableWithoutBuilder() {
         myFixture.configureByText(
             "Plain.java",
             """
             class Plain {
+                int a;
+
                 Plain(int a) {}
 
                 static Plain make() {

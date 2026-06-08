@@ -1,5 +1,6 @@
 package com.example;
 
+import com.example.model.Fee;
 import com.example.model.Order;
 import com.example.model.User;
 
@@ -48,6 +49,12 @@ public class Usage {
         u.setId(5L);
         u.setName("Carol");
         return u;
+    }
+
+    // The Fee(String) constructor's parameter (category) doesn't match the field (feeCategory),
+    // so the plugin intentionally does NOT offer to convert this one.
+    Fee handWrittenConstructor() {
+        return new Fee("LATE");
     }
 
     public static void main(String[] args) {

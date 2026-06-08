@@ -14,6 +14,9 @@ class BuilderConversionEngineTest : LombokBuilderTestCase() {
 
             @Builder
             class Demo {
+                int a;
+                String b;
+
                 Demo() {}
                 Demo(int a, String b) {}
                 void setA(int a) {}
@@ -54,6 +57,9 @@ class BuilderConversionEngineTest : LombokBuilderTestCase() {
 
             @Builder
             class Demo {
+                int a;
+                String b;
+
                 Demo() {}
                 Demo(int a, String b) {}
                 void setA(int a) {}
