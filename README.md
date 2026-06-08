@@ -4,22 +4,23 @@ An IntelliJ IDEA plugin (Kotlin) that converts **constructor calls** and **sette
 Lombok `@Builder` classes into the equivalent builder chain.
 
 ```java
-// before
+// before — a constructor call, or a declaration followed by setters
 User u = new User(1L, "Ada", "ada@example.com", true);
 
-User u = new User();
-u.setId(2L);
-u.setName("Linus");
-
-// after
-User u = User.builder().id(1L).name("Ada").email("ada@example.com").active(true).build();
-
-User u = User.builder().id(2L).name("Linus").build();
+// after — each call on its own line by default (single-line is a setting)
+User u = User.builder()
+        .id(1L)
+        .name("Ada")
+        .email("ada@example.com")
+        .active(true)
+        .build();
 ```
 
 The conversions are **only offered when the target class is annotated with `@Builder`** (or
 `@SuperBuilder`) — on the class, a constructor, or a static factory method. If there's no Lombok
 builder, no action appears.
+
+Compatible with **IntelliJ IDEA 2024.2 and newer** (no upper version bound).
 
 ## Features
 
@@ -85,8 +86,9 @@ folder — a real Gradle + Lombok project — and run the conversions on `Usage.
 
 ## Installing & publishing
 
-Install a local build into any IntelliJ IDEA: `./gradlew buildPlugin`, then *Settings → Plugins →
-⚙ → Install Plugin from Disk…* and pick the zip in `build/distributions/`.
+Install into any IntelliJ IDEA via *Settings → Plugins → ⚙ → Install Plugin from Disk…*, then
+restart. Pick either a freshly built zip (`./gradlew buildPlugin` → `build/distributions/`) or the
+prebuilt unsigned zip checked into [`dist/`](dist).
 
 Publishing to the JetBrains Marketplace is **one command**:
 
@@ -109,6 +111,7 @@ src/main/kotlin/.../ConvertToBuilderAction.kt    editor + Project-view entry poi
 src/main/resources/META-INF/plugin.xml
 src/test/kotlin/...                              tests (LightJavaCodeInsightFixtureTestCase)
 sample-project/                                  full Gradle + Lombok project to try the plugin on
+dist/                                            prebuilt unsigned plugin zip for quick install
 ```
 
 ## Known limitations
