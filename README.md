@@ -128,6 +128,10 @@ dist/                                            prebuilt unsigned plugin zip fo
 - Batch conversion converts constructor calls **with arguments** (a bare `new Foo()` with no
   following setters is left alone to avoid noisy `Foo.builder().build()` results).
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
