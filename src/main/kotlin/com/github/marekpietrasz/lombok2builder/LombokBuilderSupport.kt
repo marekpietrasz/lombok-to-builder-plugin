@@ -72,7 +72,8 @@ object LombokBuilderSupport {
 
     /** Text for folding a setter chain into a builder chain, or null when not convertible. */
     fun chainToBuilderText(chain: SetterChain, options: ConversionOptions): String? {
-        val className = resolveClass(chain.newExpression)?.name ?: return null
+        val psiClass = resolveClass(chain.newExpression) ?: return null
+        val className = psiClass.name ?: return null
         val arguments = chain.newExpression.argumentList?.expressions ?: emptyArray()
 
         val valueCalls = constructorValueCalls(chain.newExpression, arguments, options)?.toMutableList()
@@ -80,8 +81,8 @@ object LombokBuilderSupport {
         for (call in chain.setterCalls) {
             val value = call.argumentList.expressions.firstOrNull() ?: return null
             if (options.skipNullValues && isNullLiteral(value)) continue
-            val fieldName = builderFieldName(call.methodExpression.referenceName ?: return null)
-            valueCalls += ".$fieldName(${value.text})"
+            val methodName = builderMethodName(psiClass, call.methodExpression.referenceName ?: return null)
+            valueCalls += ".$methodName(${value.text})"
         }
         if (valueCalls.size < options.minValues) return null
         return assemble("$className.builder()", valueCalls + ".build()", options.multiline)
@@ -115,9 +116,25 @@ object LombokBuilderSupport {
         return unwrapped is PsiLiteralExpression && unwrapped.text == "null"
     }
 
-    /** Lombok builder method name for a setter: `setFooBar` -> `fooBar`. */
+    /** Naive Lombok builder/field name for a setter: `setFooBar` -> `fooBar`. */
     fun builderFieldName(setterName: String): String =
         setterName.removePrefix("set").replaceFirstChar { it.lowercaseChar() }
+
+    /**
+     * The Lombok builder method name for [setterName], which equals the backing field name.
+     *
+     * Resolves against the class's actual fields so the boolean `is`-prefix quirk is handled: a
+     * primitive `boolean isFoo` field has setter `setFoo`, but its field — and therefore its builder
+     * method — is `isFoo`, not `foo`. Falls back to the naive name when no matching field is found.
+     */
+    private fun builderMethodName(psiClass: PsiClass, setterName: String): String {
+        val candidate = builderFieldName(setterName)               // setSomething -> something
+        if (psiClass.findFieldByName(candidate, true) != null) return candidate
+        val isField = "is" + setterName.removePrefix("set")        // setSomething -> isSomething
+        val field = psiClass.findFieldByName(isField, true)
+        if (field != null && field.type.equalsToText("boolean")) return isField
+        return candidate
+    }
 
     /**
      * Collects the contiguous setter chain rooted at [variable], or null when the variable isn't a

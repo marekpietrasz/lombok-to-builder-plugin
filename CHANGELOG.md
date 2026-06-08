@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Setter conversion now uses the backing field name for the builder method, fixing primitive
+  `boolean isFoo` fields whose setter is `setFoo` but whose builder method is `isFoo` (previously
+  produced an invalid `.foo(...)` call).
+
 ## [0.2.0] - 2026-06-08
 
 ### Added

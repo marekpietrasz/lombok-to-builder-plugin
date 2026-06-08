@@ -153,6 +153,53 @@ class SettersToBuilderIntentionTest : LombokBuilderTestCase() {
         assertEmpty(myFixture.filterAvailableIntentions(intentionName))
     }
 
+    fun testBooleanIsPrefixedFieldUsesFieldNameAsBuilderMethod() {
+        setMultiline(false)
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                private boolean isSomething;
+                private int value;
+
+                void setSomething(boolean something) {}
+                void setValue(int value) {}
+
+                static void use() {
+                    Demo d = new De<caret>mo();
+                    d.setSomething(true);
+                    d.setValue(5);
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.launchAction(myFixture.findSingleIntention(intentionName))
+
+        // Field is `isSomething`, so the Lombok builder method is `isSomething(...)`, NOT `something(...)`.
+        myFixture.checkResult(
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                private boolean isSomething;
+                private int value;
+
+                void setSomething(boolean something) {}
+                void setValue(int value) {}
+
+                static void use() {
+                    Demo d = Demo.builder().isSomething(true).value(5).build();
+                }
+            }
+            """.trimIndent(),
+        )
+    }
+
     fun testAvailableFromSetterCall() {
         myFixture.configureByText(
             "Demo.java",
