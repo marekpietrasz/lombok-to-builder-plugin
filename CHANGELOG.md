@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-06-08
+
 ### Fixed
 - Setter conversion now uses the backing field name for the builder method, fixing primitive
   `boolean isFoo` fields whose setter is `setFoo` but whose builder method is `isFoo` (previously
@@ -41,6 +43,7 @@ setter intentions as well as the batch action.
 - Conversions are offered only when the target class is annotated with `@Builder` / `@SuperBuilder`.
 - Compatible with IntelliJ IDEA 2024.2 and newer.
 
-[Unreleased]: https://github.com/marekpietrasz/lombok-to-builder-plugin/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/marekpietrasz/lombok-to-builder-plugin/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.1
 [0.2.0]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.0
 [0.1.0]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.1.0

@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.github.marekpietrasz.lombok2builder</id>
     <name>Lombok To Builder</name>
-    <version>0.2.0</version>
+    <version>0.2.1</version>
     <vendor url="https://github.com/marekpietrasz/lombok-to-builder-plugin">
         Marek Pietrasz
     </vendor>
@@ -20,6 +20,9 @@
 
     <change-notes><![CDATA[
         <ul>
+            <li><b>0.2.1</b> — Fixes: primitive <code>boolean isFoo</code> fields now map to the
+                correct builder method, and constructors whose parameter names don't match the
+                fields are left unconverted instead of producing invalid builder calls.</li>
             <li><b>0.2.0</b> — New settings: <em>Skip setting null values</em> (default on) drops
                 <code>.x(null)</code> calls, and <em>Minimum values to convert</em> (default 3) skips
                 converting usages with fewer than N values.</li>

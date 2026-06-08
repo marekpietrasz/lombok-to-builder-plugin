@@ -121,8 +121,13 @@ dist/                                            prebuilt unsigned plugin zip fo
 
 ## Known limitations
 
-- Constructor arguments are mapped to builder methods **positionally by parameter name**; calls
-  with varargs or an argument/parameter count mismatch are skipped for safety.
+- Constructor arguments are mapped to builder methods **by parameter name**, and the conversion is
+  only offered when **every parameter matches a field**. A hand-written constructor whose parameter
+  names differ from the fields (e.g. `category` for field `feeCategory`) is left unconverted rather
+  than producing an invalid `.category(...)` call — this also leaves a constructor + setters block
+  untouched. Calls with varargs or an argument/parameter count mismatch are skipped too.
+- Setter names map to the backing **field** name, so the primitive `boolean isFoo` quirk (setter
+  `setFoo`, builder method `isFoo`) is handled correctly.
 - The setter fold only gathers setters that **immediately follow** the declaration and are called on
   that variable; an intervening statement stops the chain.
 - Batch conversion converts constructor calls **with arguments** (a bare `new Foo()` with no
