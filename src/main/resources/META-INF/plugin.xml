@@ -42,6 +42,13 @@
         </intentionAction>
 
         <notificationGroup id="Lombok To Builder" displayType="BALLOON"/>
+
+        <applicationService serviceImplementation="com.github.marekpietrasz.lombok2builder.Lombok2BuilderSettings"/>
+        <applicationConfigurable
+                parentId="tools"
+                id="com.github.marekpietrasz.lombok2builder.settings"
+                displayName="Lombok To Builder"
+                instance="com.github.marekpietrasz.lombok2builder.Lombok2BuilderConfigurable"/>
     </extensions>
 
     <actions>

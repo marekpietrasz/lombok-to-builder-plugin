@@ -9,4 +9,17 @@ abstract class LombokBuilderTestCase : LightJavaCodeInsightFixtureTestCase() {
         super.setUp()
         myFixture.addClass("package lombok;\npublic @interface Builder {}")
     }
+
+    override fun tearDown() {
+        try {
+            // Application-level settings persist across tests; restore the default.
+            Lombok2BuilderSettings.getInstance().multiline = true
+        } finally {
+            super.tearDown()
+        }
+    }
+
+    protected fun setMultiline(value: Boolean) {
+        Lombok2BuilderSettings.getInstance().multiline = value
+    }
 }

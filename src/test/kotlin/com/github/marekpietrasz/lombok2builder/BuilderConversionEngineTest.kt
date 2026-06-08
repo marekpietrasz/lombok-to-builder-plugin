@@ -6,6 +6,7 @@ import com.intellij.psi.PsiJavaFile
 class BuilderConversionEngineTest : LombokBuilderTestCase() {
 
     fun testConvertsWholeFileAndLeavesNonBuilderUsages() {
+        setMultiline(false)
         myFixture.configureByText(
             "Use.java",
             """

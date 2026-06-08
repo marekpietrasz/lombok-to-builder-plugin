@@ -4,7 +4,8 @@ class SettersToBuilderIntentionTest : LombokBuilderTestCase() {
 
     private val intentionName = "Convert setters to builder"
 
-    fun testConvertsSetterChain() {
+    fun testConvertsSetterChainSingleLine() {
+        setMultiline(false)
         myFixture.configureByText(
             "Demo.java",
             """
@@ -37,6 +38,48 @@ class SettersToBuilderIntentionTest : LombokBuilderTestCase() {
 
                 static void use() {
                     Demo d = Demo.builder().a(1).b("x").build();
+                }
+            }
+            """.trimIndent(),
+        )
+    }
+
+    fun testConvertsSetterChainMultilineByDefault() {
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                void setA(int a) {}
+                void setB(String b) {}
+
+                static void use() {
+                    Demo d = new De<caret>mo();
+                    d.setA(1);
+                    d.setB("x");
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.launchAction(myFixture.findSingleIntention(intentionName))
+
+        myFixture.checkResult(
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                void setA(int a) {}
+                void setB(String b) {}
+
+                static void use() {
+                    Demo d = Demo.builder()
+                            .a(1)
+                            .b("x")
+                            .build();
                 }
             }
             """.trimIndent(),

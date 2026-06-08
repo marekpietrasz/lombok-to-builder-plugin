@@ -4,7 +4,8 @@ class ConstructorToBuilderIntentionTest : LombokBuilderTestCase() {
 
     private val intentionName = "Convert constructor to builder"
 
-    fun testConvertsConstructorWithArguments() {
+    fun testConvertsConstructorSingleLine() {
+        setMultiline(false)
         myFixture.configureByText(
             "Demo.java",
             """
@@ -33,6 +34,44 @@ class ConstructorToBuilderIntentionTest : LombokBuilderTestCase() {
 
                 static Demo make() {
                     return Demo.builder().a(1).b("x").build();
+                }
+            }
+            """.trimIndent(),
+        )
+    }
+
+    fun testConvertsConstructorMultilineByDefault() {
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            class Demo {
+                @Builder
+                Demo(int a, String b) {}
+
+                static Demo make() {
+                    return new De<caret>mo(1, "x");
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.launchAction(myFixture.findSingleIntention(intentionName))
+
+        myFixture.checkResult(
+            """
+            import lombok.Builder;
+
+            class Demo {
+                @Builder
+                Demo(int a, String b) {}
+
+                static Demo make() {
+                    return Demo.builder()
+                            .a(1)
+                            .b("x")
+                            .build();
                 }
             }
             """.trimIndent(),

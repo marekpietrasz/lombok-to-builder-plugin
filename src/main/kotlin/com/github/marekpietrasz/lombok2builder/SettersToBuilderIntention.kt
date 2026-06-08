@@ -25,7 +25,8 @@ class SettersToBuilderIntention : PsiElementBaseIntentionAction() {
 
     override fun invoke(project: Project, editor: Editor?, element: PsiElement) {
         val chain = findChain(element) ?: return
-        LombokBuilderSupport.applyChain(chain, JavaPsiFacade.getElementFactory(project))
+        val multiline = Lombok2BuilderSettings.getInstance().multiline
+        LombokBuilderSupport.applyChain(chain, JavaPsiFacade.getElementFactory(project), multiline)
     }
 
     private fun findChain(element: PsiElement): LombokBuilderSupport.SetterChain? {

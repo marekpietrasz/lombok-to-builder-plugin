@@ -37,6 +37,23 @@ builder, no action appears.
 > Tip: install/enable JetBrains' **Lombok** plugin too, so the constructors and builder methods
 > Lombok generates resolve in the editor.
 
+## Configuration
+
+**Settings → Tools → Lombok To Builder**:
+
+- **Generate each builder call on a new line** (default: **on**) — produces a chopped, multi-line
+  chain (indentation follows your project code style):
+  ```java
+  User.builder()
+          .id(1L)
+          .name("Ada")
+          .build();
+  ```
+  Disable it to generate the whole chain on a single line:
+  ```java
+  User.builder().id(1L).name("Ada").build();
+  ```
+
 ## Why a plugin (and not SSR / OpenRewrite)?
 
 Structural Search & Replace can't reliably do multi-line, structural edits like folding a
