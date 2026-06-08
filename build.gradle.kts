@@ -38,10 +38,10 @@ intellijPlatform {
     pluginConfiguration {
         ideaVersion {
             // Built against 2025.1, but the APIs used exist since 2024.2 and it was verified
-            // running on 2024.2.5, so we keep the floor at 242. (This triggers a harmless
-            // "since-build lower than target platform" advisory from verifyPluginProjectConfiguration.)
+            // running on 2024.2.5, so we keep the floor at 242. The plugin uses only long-stable
+            // APIs, so leave the upper bound open to stay compatible with newer IDEs (261+).
             sinceBuild = "242"
-            untilBuild = "251.*"
+            untilBuild = provider { null }
         }
     }
 
