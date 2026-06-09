@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-09
+
+### Added
+- **Self-referencing setters are handled** when folding a setter block. A setter whose argument
+  references the variable being built (e.g. a child that points back at its parent —
+  `parent.setChild(new Child(parent))`) can't go inside the builder, since that would read the
+  variable before it's assigned. It's now kept as a trailing setter right after the builder:
+  ```java
+  Parent parent = Parent.builder().name("root").build();
+  parent.setChild(new Child("leaf", parent));
+  ```
+  The rest of the block still folds normally. New setting **Keep self-referencing setters after the
+  builder** (default on) under **Settings → Tools → Lombok To Builder**; turn it off to leave any
+  block containing such a setter entirely unconverted. Applies to the setters→builder path only
+  (a constructor can't reference the object it creates).
+
 ## [0.2.6] - 2026-06-09
 
 ### Fixed
@@ -85,7 +101,8 @@ setter intentions as well as the batch action.
 - Conversions are offered only when the target class is annotated with `@Builder` / `@SuperBuilder`.
 - Compatible with IntelliJ IDEA 2024.2 and newer.
 
-[Unreleased]: https://github.com/marekpietrasz/lombok-to-builder-plugin/compare/v0.2.6...HEAD
+[Unreleased]: https://github.com/marekpietrasz/lombok-to-builder-plugin/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.3.0
 [0.2.6]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.6
 [0.2.5]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.5
 [0.2.4]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.4

@@ -60,6 +60,18 @@ Compatible with **IntelliJ IDEA 2024.2 and newer** (no upper version bound).
   `new Foo(...)` with fewer than this many (non-null) arguments isn't converted, so trivial 1–2
   value constructors are left alone. **Setter blocks are always converted**, regardless of this
   setting. Set it to `1` to convert every constructor call.
+- **Keep self-referencing setters after the builder** (default: **on**) — handles a setter whose
+  value references the object being built (e.g. a child that points back at its parent). Such a
+  setter can't go inside the builder — `Parent p = Parent.builder().child(new Child(p))...` would
+  read `p` before it's assigned. With this **on**, the rest is folded and that setter is kept right
+  after the builder, where the variable already exists:
+  ```java
+  Parent p = Parent.builder().name("p").build();
+  p.setChild(new Child(p));   // left as a setter
+  ```
+  With it **off**, a block containing any such setter is left entirely as setters (no conversion).
+  This applies to the **setters→builder** path only (a constructor can't reference the object it
+  creates).
 
 ## Why a plugin (and not SSR / OpenRewrite)?
 

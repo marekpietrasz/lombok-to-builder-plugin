@@ -36,6 +36,18 @@ class Lombok2BuilderConfigurable : BoundConfigurable("Lombok To Builder") {
                         "converted. Setter blocks are always converted, regardless of this value.",
                 )
             }
+            row {
+                checkBox("Keep self-referencing setters after the builder")
+                    .bindSelected(settings::deferSelfReferencingSetters)
+            }
+            row {
+                comment(
+                    "When a setter's value references the object being built (e.g. a child pointing " +
+                        "back at its parent), it can't go in the builder. When enabled, the rest is " +
+                        "folded and that setter is kept right after the builder; when disabled, the " +
+                        "whole block is left as setters.",
+                )
+            }
         }
     }
 }

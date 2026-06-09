@@ -328,4 +328,265 @@ class SettersToBuilderIntentionTest : LombokBuilderTestCase() {
 
         assertEmpty(myFixture.filterAvailableIntentions(intentionName))
     }
+
+    fun testSelfReferencingSetterIsDeferred() {
+        setMultiline(false)
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Node {
+                String name;
+                Node self;
+
+                void setName(String name) {}
+                void setSelf(Node self) {}
+
+                static void use() {
+                    Node n = new No<caret>de();
+                    n.setName("x");
+                    n.setSelf(n);
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.launchAction(myFixture.findSingleIntention(intentionName))
+
+        // setSelf references the variable being built, so it can't go in the builder: the rest is
+        // folded and setSelf is kept right after the builder, where `n` is already assigned.
+        myFixture.checkResult(
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Node {
+                String name;
+                Node self;
+
+                void setName(String name) {}
+                void setSelf(Node self) {}
+
+                static void use() {
+                    Node n = Node.builder().name("x").build();
+                    n.setSelf(n);
+                }
+            }
+            """.trimIndent(),
+        )
+    }
+
+    fun testSelfReferenceNestedInExpressionIsDeferred() {
+        setMultiline(false)
+        // The argument references the variable indirectly (inside a call), modelling a child that
+        // points back at its parent. It must still be detected and deferred.
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Parent {
+                String name;
+                Object child;
+
+                void setName(String name) {}
+                void setChild(Object child) {}
+
+                static Object wrap(Parent p) {
+                    return null;
+                }
+
+                static void use() {
+                    Parent p = new Par<caret>ent();
+                    p.setName("p");
+                    p.setChild(wrap(p));
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.launchAction(myFixture.findSingleIntention(intentionName))
+
+        myFixture.checkResult(
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Parent {
+                String name;
+                Object child;
+
+                void setName(String name) {}
+                void setChild(Object child) {}
+
+                static Object wrap(Parent p) {
+                    return null;
+                }
+
+                static void use() {
+                    Parent p = Parent.builder().name("p").build();
+                    p.setChild(wrap(p));
+                }
+            }
+            """.trimIndent(),
+        )
+    }
+
+    fun testDeferredSetterKeepsRemainingSettersInBuilder() {
+        setMultiline(false)
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Node {
+                int a;
+                int b;
+                Node self;
+
+                void setA(int a) {}
+                void setB(int b) {}
+                void setSelf(Node self) {}
+
+                static void use() {
+                    Node n = new No<caret>de();
+                    n.setA(1);
+                    n.setSelf(n);
+                    n.setB(2);
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.launchAction(myFixture.findSingleIntention(intentionName))
+
+        // a and b fold into the builder (even though b follows the self-reference); only setSelf stays.
+        myFixture.checkResult(
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Node {
+                int a;
+                int b;
+                Node self;
+
+                void setA(int a) {}
+                void setB(int b) {}
+                void setSelf(Node self) {}
+
+                static void use() {
+                    Node n = Node.builder().a(1).b(2).build();
+                    n.setSelf(n);
+                }
+            }
+            """.trimIndent(),
+        )
+    }
+
+    fun testSelfReferencingSetterDeferredMultiline() {
+        // multiline is the default; the deferred setter sits on its own line after the builder.
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Node {
+                String name;
+                Node self;
+
+                void setName(String name) {}
+                void setSelf(Node self) {}
+
+                static void use() {
+                    Node n = new No<caret>de();
+                    n.setName("x");
+                    n.setSelf(n);
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.launchAction(myFixture.findSingleIntention(intentionName))
+
+        myFixture.checkResult(
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Node {
+                String name;
+                Node self;
+
+                void setName(String name) {}
+                void setSelf(Node self) {}
+
+                static void use() {
+                    Node n = Node.builder()
+                            .name("x")
+                            .build();
+                    n.setSelf(n);
+                }
+            }
+            """.trimIndent(),
+        )
+    }
+
+    fun testSelfReferencingChainSkippedWhenDeferDisabled() {
+        setDeferSelfReferencingSetters(false)
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Node {
+                String name;
+                Node self;
+
+                void setName(String name) {}
+                void setSelf(Node self) {}
+
+                static void use() {
+                    Node n = new No<caret>de();
+                    n.setName("x");
+                    n.setSelf(n);
+                }
+            }
+            """.trimIndent(),
+        )
+
+        // With deferral off, a chain containing a self-reference is left entirely as setters.
+        assertEmpty(myFixture.filterAvailableIntentions(intentionName))
+    }
+
+    fun testChainWithOnlySelfReferenceIsNotConverted() {
+        // Nothing can be folded into the builder (the lone setter self-references), so there's no
+        // point converting — the intention isn't offered even with deferral on (the default).
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Node {
+                Node self;
+
+                void setSelf(Node self) {}
+
+                static void use() {
+                    Node n = new No<caret>de();
+                    n.setSelf(n);
+                }
+            }
+            """.trimIndent(),
+        )
+
+        assertEmpty(myFixture.filterAvailableIntentions(intentionName))
+    }
 }

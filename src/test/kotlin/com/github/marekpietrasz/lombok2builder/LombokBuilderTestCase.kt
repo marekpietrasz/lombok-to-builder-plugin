@@ -20,6 +20,7 @@ abstract class LombokBuilderTestCase : LightJavaCodeInsightFixtureTestCase() {
             settings.multiline = true
             settings.skipNullValues = true
             settings.minValues = 3
+            settings.deferSelfReferencingSetters = true
         } finally {
             super.tearDown()
         }
@@ -35,5 +36,9 @@ abstract class LombokBuilderTestCase : LightJavaCodeInsightFixtureTestCase() {
 
     protected fun setMinValues(value: Int) {
         Lombok2BuilderSettings.getInstance().minValues = value
+    }
+
+    protected fun setDeferSelfReferencingSetters(value: Boolean) {
+        Lombok2BuilderSettings.getInstance().deferSelfReferencingSetters = value
     }
 }

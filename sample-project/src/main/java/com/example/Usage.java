@@ -1,8 +1,10 @@
 package com.example;
 
 import com.example.model.Catalog;
+import com.example.model.Child;
 import com.example.model.Fee;
 import com.example.model.Order;
+import com.example.model.Parent;
 import com.example.model.User;
 
 import java.math.BigDecimal;
@@ -67,11 +69,24 @@ public class Usage {
         return new Catalog.Item("SKU-1", "Widget", new BigDecimal("9.99"));
     }
 
+    // The child holds a back-reference to its parent, so `parent.setChild(new Child("leaf", parent))`
+    // references `parent` and can't go in the builder. With "Keep self-referencing setters after the
+    // builder" (default ON), the rest is folded and that setter is kept right after the builder:
+    //   Parent parent = Parent.builder().name("root").build();
+    //   parent.setChild(new Child("leaf", parent));
+    Parent selfReferencingSetter() {
+        Parent parent = new Parent();
+        parent.setName("root");
+        parent.setChild(new Child("leaf", parent));
+        return parent;
+    }
+
     public static void main(String[] args) {
         Usage usage = new Usage();
         System.out.println(usage.viaConstructor());
         System.out.println(usage.viaSetters());
         System.out.println(usage.nestedBuilders());
         System.out.println(usage.nestedClassBuilder());
+        System.out.println(usage.selfReferencingSetter());
     }
 }

@@ -20,6 +20,7 @@ Open `src/main/java/com/example/Usage.java`:
 |---|---|
 | Caret on `new User(1L, ...)` | Alt+Enter → **Convert constructor to builder** |
 | Caret on the `User u = new User();` block or any `u.setX(...)` line | Alt+Enter → **Convert setters to builder** |
+| Caret on the `Parent parent = new Parent();` block (`selfReferencingSetter`) | **Convert setters to builder** — `setName` folds into the builder, the self-referencing `setChild(new Child("leaf", parent))` stays as a trailing setter |
 | Right-click editor (no selection = whole file) | **Convert Lombok Usages to Builder** |
 | Right-click the `sample-project` folder in the Project view | batch-convert every `.java` underneath |
 

@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.github.marekpietrasz.lombok2builder</id>
     <name>Lombok To Builder</name>
-    <version>0.2.6</version>
+    <version>0.3.0</version>
     <vendor url="https://github.com/marekpietrasz/lombok-to-builder-plugin">
         Marek Pietrasz
     </vendor>
@@ -16,10 +16,18 @@
         </ul>
         Actions only appear when the target class carries Lombok's <code>@Builder</code> (or <code>@SuperBuilder</code>).
         Enabling the Lombok plugin is recommended so generated constructors resolve.
+        <p>When folding setters, a setter whose value references the object being built (e.g. a child
+        pointing back at its parent) is kept as a trailing setter after the builder so the result
+        still compiles. This is configurable under <b>Settings | Tools | Lombok To Builder</b>.</p>
     ]]></description>
 
     <change-notes><![CDATA[
         <ul>
+            <li><b>0.3.0</b> — Setter folding now handles self-references: a setter whose value
+                references the object being built (e.g. a child pointing back at its parent) is kept
+                as a trailing setter after the builder instead of producing code that won't compile.
+                New setting <em>Keep self-referencing setters after the builder</em> (default on; turn
+                off to skip such blocks entirely).</li>
             <li><b>0.2.6</b> — Replaced a deprecated <code>ReadAction.compute</code> call in the batch
                 action (flagged by newer IDEs); no change to behavior.</li>
             <li><b>0.2.5</b> — Added a plugin icon. Internal: static analysis (detekt) and more tests;

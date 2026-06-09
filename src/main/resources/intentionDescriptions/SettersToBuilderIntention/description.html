@@ -8,6 +8,9 @@ f.setA(1);
 f.setB("x");</code></pre>
 <p>becomes</p>
 <pre><code>Foo f = Foo.builder().a(1).b("x").build();</code></pre>
+<p>A setter whose value references the variable being built (e.g. a child pointing back at its
+parent) can't be folded into the builder. By default it is kept as a trailing setter after the
+builder; this is configurable under <b>Settings | Tools | Lombok To Builder</b>.</p>
 <p>Only offered when the target class is annotated with <code>@Builder</code> or <code>@SuperBuilder</code>.</p>
 </body>
 </html>

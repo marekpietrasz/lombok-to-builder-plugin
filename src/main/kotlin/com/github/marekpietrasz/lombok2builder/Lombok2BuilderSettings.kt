@@ -18,6 +18,11 @@ class Lombok2BuilderSettings : PersistentStateComponent<Lombok2BuilderSettings.S
         var skipNullValues: Boolean = true,
         /** Don't convert when fewer than this many (non-null) values would be set. Defaults to 3. */
         var minValues: Int = 3,
+        /**
+         * When a setter references the object being built, keep it as a trailing setter after the
+         * builder (true) instead of skipping the whole block (false). Defaults to true.
+         */
+        var deferSelfReferencingSetters: Boolean = true,
     )
 
     private var state = State()
@@ -44,6 +49,12 @@ class Lombok2BuilderSettings : PersistentStateComponent<Lombok2BuilderSettings.S
         get() = state.minValues
         set(value) {
             state.minValues = value
+        }
+
+    var deferSelfReferencingSetters: Boolean
+        get() = state.deferSelfReferencingSetters
+        set(value) {
+            state.deferSelfReferencingSetters = value
         }
 
     companion object {

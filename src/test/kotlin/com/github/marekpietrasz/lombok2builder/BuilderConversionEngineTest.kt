@@ -162,6 +162,42 @@ class BuilderConversionEngineTest : LombokBuilderTestCase() {
         assertTrue(withoutSpaces.contains("Demo.builder()\n.a(1)\n.b(\"x\")\n.build()"))
     }
 
+    fun testSelfReferencingSetterDeferredInBatch() {
+        setMultiline(false)
+        myFixture.configureByText(
+            "Use.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Node {
+                String name;
+                Node self;
+
+                void setName(String name) {}
+                void setSelf(Node self) {}
+            }
+
+            class Use {
+                void build() {
+                    Node n = new Node();
+                    n.setName("x");
+                    n.setSelf(n);
+                }
+            }
+            """.trimIndent(),
+        )
+
+        val file = myFixture.file as PsiJavaFile
+        val converted = WriteCommandAction.runWriteCommandAction<Int>(project) {
+            BuilderConversionEngine.convertFile(file, null)
+        }
+
+        assertEquals(1, converted)
+        assertTrue("folded setters in builder", file.text.contains("Node n = Node.builder().name(\"x\").build();"))
+        assertTrue("self-reference kept as trailing setter", file.text.contains("n.setSelf(n);"))
+    }
+
     fun testMinValuesGatesConstructorsButNotSettersInBatch() {
         setMultiline(false)
         setMinValues(3)

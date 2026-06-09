@@ -1,5 +1,6 @@
 package com.github.marekpietrasz.lombok2builder
 
+import com.intellij.psi.JavaRecursiveElementWalkingVisitor
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiDeclarationStatement
@@ -74,19 +75,83 @@ object LombokBuilderSupport {
         return assemble("$receiver.builder()", valueCalls + ".build()", options.multiline)
     }
 
-    /** Text for folding a setter chain into a builder chain, or null when not convertible. */
-    fun chainToBuilderText(chain: SetterChain, options: ConversionOptions): String? {
+    /**
+     * A planned setter-chain conversion: the builder initializer text plus, for the chain's trailing
+     * setter statements, which to delete (folded into the builder) and which to keep in place.
+     *
+     * A setter whose argument references the variable being built (e.g. a child pointing back at its
+     * parent) can't be folded into the initializer — that would read the variable before it is
+     * assigned. Those are [deferredStatements]: they stay put and run after the builder assigns the
+     * variable. See [ConversionOptions.deferSelfReferencingSetters].
+     */
+    data class ChainPlan(
+        val builderText: String,
+        val foldedStatements: List<PsiExpressionStatement>,
+        val deferredStatements: List<PsiExpressionStatement>,
+    )
+
+    /** Plans how to fold [chain] into a builder, or null when it isn't convertible. */
+    fun planChain(chain: SetterChain, options: ConversionOptions): ChainPlan? {
         val psiClass = resolveClass(chain.newExpression) ?: return null
         val receiver = builderReceiver(chain.newExpression) ?: return null
         val arguments = chain.newExpression.argumentList?.expressions ?: emptyArray()
-
         val constructorCalls = constructorValueCalls(psiClass, chain.newExpression, arguments, options) ?: return null
-        val setterCalls = setterValueCalls(psiClass, chain.setterCalls, options) ?: return null
+        val partition = partitionSetters(chain, options) ?: return null
+        val setterCalls = setterValueCalls(psiClass, partition.foldedCalls, options) ?: return null
+
         val valueCalls = constructorCalls + setterCalls
-        // Setter blocks are always converted regardless of the minimum-values threshold (that gates
-        // constructor calls only); only bail if nothing would be set (e.g. the lone setter was null).
+        // Setter blocks ignore the minimum-values threshold (that gates constructor calls only); only
+        // bail when nothing can be folded into the builder (every value was null and/or deferred).
         if (valueCalls.isEmpty()) return null
-        return assemble("$receiver.builder()", valueCalls + ".build()", options.multiline)
+        val builderText = assemble("$receiver.builder()", valueCalls + ".build()", options.multiline)
+        return ChainPlan(builderText, partition.foldedStatements, partition.deferredStatements)
+    }
+
+    /** Builder initializer text for [chain], or null when not convertible (deferred setters aside). */
+    fun chainToBuilderText(chain: SetterChain, options: ConversionOptions): String? =
+        planChain(chain, options)?.builderText
+
+    private data class SetterPartition(
+        val foldedCalls: List<PsiMethodCallExpression>,
+        val foldedStatements: List<PsiExpressionStatement>,
+        val deferredStatements: List<PsiExpressionStatement>,
+    )
+
+    /**
+     * Splits a chain's setter calls into those foldable into the builder and those that must stay as
+     * trailing setters because their argument references the variable being built. Returns null when
+     * a setter is malformed, or — when [ConversionOptions.deferSelfReferencingSetters] is false — when
+     * any setter self-references (the whole chain is then left unconverted).
+     */
+    private fun partitionSetters(chain: SetterChain, options: ConversionOptions): SetterPartition? {
+        val foldedCalls = mutableListOf<PsiMethodCallExpression>()
+        val foldedStatements = mutableListOf<PsiExpressionStatement>()
+        val deferredStatements = mutableListOf<PsiExpressionStatement>()
+        for (i in chain.setterCalls.indices) {
+            val call = chain.setterCalls[i]
+            val value = call.argumentList.expressions.firstOrNull() ?: return null
+            if (referencesVariable(value, chain.variable)) {
+                if (!options.deferSelfReferencingSetters) return null
+                deferredStatements += chain.setterStatements[i]
+            } else {
+                foldedCalls += call
+                foldedStatements += chain.setterStatements[i]
+            }
+        }
+        return SetterPartition(foldedCalls, foldedStatements, deferredStatements)
+    }
+
+    /** True when [expression] reads [variable] anywhere within it. */
+    private fun referencesVariable(expression: PsiExpression, variable: PsiLocalVariable): Boolean {
+        var found = false
+        expression.accept(object : JavaRecursiveElementWalkingVisitor() {
+            override fun visitReferenceExpression(reference: PsiReferenceExpression) {
+                if (found) return
+                super.visitReferenceExpression(reference)
+                if (reference.resolve() == variable) found = true
+            }
+        })
+        return found
     }
 
     /** `.method(arg)` call strings for a chain's `setX(...)` calls (null values dropped per options),
@@ -238,13 +303,15 @@ object LombokBuilderSupport {
         return true
     }
 
-    /** Folds a setter chain into a single builder declaration. Returns false if not convertible. */
+    /** Folds a setter chain into a single builder declaration, leaving any self-referencing setters
+     *  in place as trailing statements. Returns false if not convertible. */
     fun applyChain(chain: SetterChain, factory: PsiElementFactory, options: ConversionOptions): Boolean {
-        val text = chainToBuilderText(chain, options) ?: return false
+        val plan = planChain(chain, options) ?: return false
         val declaration = chain.declarationStatement
-        val newInitializer = factory.createExpressionFromText(text, chain.variable)
+        val newInitializer = factory.createExpressionFromText(plan.builderText, chain.variable)
         chain.variable.initializer?.replace(newInitializer) ?: return false
-        for (statement in chain.setterStatements) statement.delete()
+        for (statement in plan.foldedStatements) statement.delete()
+        // Deferred (self-referencing) setters stay put so they run after the variable is assigned.
         if (options.multiline) reformat(declaration)
         return true
     }
