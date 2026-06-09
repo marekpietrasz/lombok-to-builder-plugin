@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-06-09
+
+### Fixed
+- The batch action (Project view: folder / module / project) no longer freezes the IDE on large
+  trees. It now runs in a cancellable background task, enumerates files off the EDT, and applies each
+  file in its own short write command so the UI stays responsive (previously the whole batch ran in a
+  single EDT write action, freezing the editor for the entire run). The editor path (whole file or
+  selection) is unchanged — still a single immediate write command.
+
 ## [0.2.3] - 2026-06-09
 
 ### Fixed
@@ -58,7 +67,8 @@ setter intentions as well as the batch action.
 - Conversions are offered only when the target class is annotated with `@Builder` / `@SuperBuilder`.
 - Compatible with IntelliJ IDEA 2024.2 and newer.
 
-[Unreleased]: https://github.com/marekpietrasz/lombok-to-builder-plugin/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/marekpietrasz/lombok-to-builder-plugin/compare/v0.2.4...HEAD
+[0.2.4]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.4
 [0.2.3]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.3
 [0.2.2]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.2
 [0.2.1]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.1

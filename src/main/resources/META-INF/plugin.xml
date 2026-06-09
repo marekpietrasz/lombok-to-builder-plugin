@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.github.marekpietrasz.lombok2builder</id>
     <name>Lombok To Builder</name>
-    <version>0.2.3</version>
+    <version>0.2.4</version>
     <vendor url="https://github.com/marekpietrasz/lombok-to-builder-plugin">
         Marek Pietrasz
     </vendor>
@@ -20,6 +20,9 @@
 
     <change-notes><![CDATA[
         <ul>
+            <li><b>0.2.4</b> — The batch action (folder/module/project) now runs in a cancellable
+                background task and converts one file per write command, so it no longer freezes the
+                IDE while processing many files.</li>
             <li><b>0.2.3</b> — Nested <code>@Builder</code> classes now keep their outer-class
                 qualifier (e.g. <code>Outer.Inner.builder()</code>); previously the outer class was
                 dropped, producing an uncompilable <code>Inner.builder()</code>.</li>
