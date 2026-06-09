@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-06-09
+
+### Fixed
+- Nested `@Builder` classes now keep their outer-class qualifier. Converting `new Outer.Inner(...)`
+  (or its setter block) now emits `Outer.Inner.builder()...` instead of dropping the outer class and
+  producing an uncompilable `Inner.builder()`. The reference is reproduced as written at the `new`
+  site, so a usage that already only needs the simple name is unaffected.
+
 ## [0.2.2] - 2026-06-08
 
 ### Changed
@@ -50,7 +58,8 @@ setter intentions as well as the batch action.
 - Conversions are offered only when the target class is annotated with `@Builder` / `@SuperBuilder`.
 - Compatible with IntelliJ IDEA 2024.2 and newer.
 
-[Unreleased]: https://github.com/marekpietrasz/lombok-to-builder-plugin/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/marekpietrasz/lombok-to-builder-plugin/compare/v0.2.3...HEAD
+[0.2.3]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.3
 [0.2.2]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.2
 [0.2.1]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.1
 [0.2.0]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.0

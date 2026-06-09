@@ -164,6 +164,103 @@ class LombokBuilderEdgeCasesTest : LombokBuilderTestCase() {
         )
     }
 
+    fun testNestedClassConstructorKeepsOuterQualifier() {
+        setMultiline(false)
+        // The nested @Builder class lives in Outer; the usage is in a different class where `Inner`
+        // is reachable only as `Outer.Inner`. The `Outer.` qualifier must survive the conversion —
+        // emitting a bare `Inner.builder()` would not compile.
+        myFixture.addClass(
+            """
+            package demo;
+
+            import lombok.Builder;
+
+            public class Outer {
+                @Builder
+                public static class Inner {
+                    int a;
+                    String b;
+
+                    public Inner(int a, String b) {}
+                }
+            }
+            """.trimIndent(),
+        )
+        myFixture.configureByText(
+            "Client.java",
+            """
+            package demo;
+
+            class Client {
+                static Outer.Inner make() {
+                    return new Outer.In<caret>ner(1, "x");
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.launchAction(myFixture.findSingleIntention(constructorIntention))
+
+        myFixture.checkResult(
+            """
+            package demo;
+
+            class Client {
+                static Outer.Inner make() {
+                    return Outer.Inner.builder().a(1).b("x").build();
+                }
+            }
+            """.trimIndent(),
+        )
+    }
+
+    fun testNestedClassSetterKeepsOuterQualifier() {
+        setMultiline(false)
+        myFixture.addClass(
+            """
+            package demo;
+
+            import lombok.Builder;
+
+            public class Outer {
+                @Builder
+                public static class Inner {
+                    int a;
+
+                    public void setA(int a) {}
+                }
+            }
+            """.trimIndent(),
+        )
+        myFixture.configureByText(
+            "Client.java",
+            """
+            package demo;
+
+            class Client {
+                static void use() {
+                    Outer.Inner d = new Outer.In<caret>ner();
+                    d.setA(1);
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.launchAction(myFixture.findSingleIntention(setterIntention))
+
+        myFixture.checkResult(
+            """
+            package demo;
+
+            class Client {
+                static void use() {
+                    Outer.Inner d = Outer.Inner.builder().a(1).build();
+                }
+            }
+            """.trimIndent(),
+        )
+    }
+
     fun testMultiVariableDeclarationNotConverted() {
         myFixture.configureByText(
             "Demo.java",

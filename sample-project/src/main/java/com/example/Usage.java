@@ -1,5 +1,6 @@
 package com.example;
 
+import com.example.model.Catalog;
 import com.example.model.Fee;
 import com.example.model.Order;
 import com.example.model.User;
@@ -59,10 +60,18 @@ public class Usage {
         return new Fee("LATE", 10, "USD", "Late fee");
     }
 
+    // The @Builder lives on the nested Catalog.Item; here it's referred to as Catalog.Item (its
+    // simple name Item isn't imported). The conversion keeps the qualifier:
+    // Catalog.Item.builder().sku("SKU-1").name("Widget").price(...).build() — NOT Item.builder().
+    Catalog.Item nestedClassBuilder() {
+        return new Catalog.Item("SKU-1", "Widget", new BigDecimal("9.99"));
+    }
+
     public static void main(String[] args) {
         Usage usage = new Usage();
         System.out.println(usage.viaConstructor());
         System.out.println(usage.viaSetters());
         System.out.println(usage.nestedBuilders());
+        System.out.println(usage.nestedClassBuilder());
     }
 }

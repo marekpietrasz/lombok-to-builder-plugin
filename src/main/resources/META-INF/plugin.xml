@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.github.marekpietrasz.lombok2builder</id>
     <name>Lombok To Builder</name>
-    <version>0.2.2</version>
+    <version>0.2.3</version>
     <vendor url="https://github.com/marekpietrasz/lombok-to-builder-plugin">
         Marek Pietrasz
     </vendor>
@@ -20,6 +20,9 @@
 
     <change-notes><![CDATA[
         <ul>
+            <li><b>0.2.3</b> — Nested <code>@Builder</code> classes now keep their outer-class
+                qualifier (e.g. <code>Outer.Inner.builder()</code>); previously the outer class was
+                dropped, producing an uncompilable <code>Inner.builder()</code>.</li>
             <li><b>0.2.2</b> — <em>Minimum values to convert</em> now gates constructor calls only;
                 setter blocks are always converted regardless of the threshold.</li>
             <li><b>0.2.1</b> — Fixes: primitive <code>boolean isFoo</code> fields now map to the

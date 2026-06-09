@@ -62,19 +62,19 @@ object LombokBuilderSupport {
         if (newExpression.anonymousClass != null) return null
         val psiClass = resolveClass(newExpression) ?: return null
         if (!hasBuilder(psiClass)) return null
-        val className = psiClass.name ?: return null
+        val receiver = builderReceiver(newExpression) ?: return null
         val arguments = newExpression.argumentList?.expressions ?: return null
 
         val valueCalls = constructorValueCalls(psiClass, newExpression, arguments, options) ?: return null
         // The minimum-values threshold gates constructor conversions only.
         if (valueCalls.size < options.minValues) return null
-        return assemble("$className.builder()", valueCalls + ".build()", options.multiline)
+        return assemble("$receiver.builder()", valueCalls + ".build()", options.multiline)
     }
 
     /** Text for folding a setter chain into a builder chain, or null when not convertible. */
     fun chainToBuilderText(chain: SetterChain, options: ConversionOptions): String? {
         val psiClass = resolveClass(chain.newExpression) ?: return null
-        val className = psiClass.name ?: return null
+        val receiver = builderReceiver(chain.newExpression) ?: return null
         val arguments = chain.newExpression.argumentList?.expressions ?: emptyArray()
 
         val valueCalls = constructorValueCalls(psiClass, chain.newExpression, arguments, options)?.toMutableList()
@@ -88,7 +88,22 @@ object LombokBuilderSupport {
         // Setter blocks are always converted regardless of the minimum-values threshold (that gates
         // constructor calls only); only bail if nothing would be set (e.g. the lone setter was null).
         if (valueCalls.isEmpty()) return null
-        return assemble("$className.builder()", valueCalls + ".build()", options.multiline)
+        return assemble("$receiver.builder()", valueCalls + ".build()", options.multiline)
+    }
+
+    /**
+     * The receiver text for the generated `.builder()` call, preserving any outer-class or package
+     * qualifier exactly as written at the `new` site (e.g. `Outer.Inner` for `new Outer.Inner(...)`).
+     *
+     * Using the class's simple name alone would drop the `Outer.` qualifier and emit
+     * `Inner.builder()`, which doesn't compile when `Inner` isn't accessible by its simple name. The
+     * reference name carries no type arguments, so `new Foo<String>(...)` still yields `Foo.builder()`.
+     */
+    private fun builderReceiver(newExpression: PsiNewExpression): String? {
+        val reference = newExpression.classReference ?: return null
+        val name = reference.referenceName ?: return null
+        val qualifier = reference.qualifier?.text
+        return if (qualifier != null) "$qualifier.$name" else name
     }
 
     /** `.param(arg)` call strings for constructor arguments (null args dropped per options), or null
