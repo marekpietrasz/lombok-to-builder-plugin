@@ -7,7 +7,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -69,7 +68,9 @@ class ConvertToBuilderAction : AnAction() {
         ProgressManager.getInstance().run(object : Task.Backgroundable(project, title, true) {
             override fun run(indicator: ProgressIndicator) {
                 indicator.isIndeterminate = false
-                val files = ReadAction.compute<List<VirtualFile>, RuntimeException> { collectJavaFiles(roots) }
+                // Walking the VFS tree is thread-safe and needs no read action; PSI is only touched
+                // later, one file at a time, inside the per-file write command on the EDT.
+                val files = collectJavaFiles(roots)
                 if (files.isEmpty()) {
                     notify(project, "No Java files found to convert.")
                     return

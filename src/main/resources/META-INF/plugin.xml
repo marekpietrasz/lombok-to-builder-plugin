@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.github.marekpietrasz.lombok2builder</id>
     <name>Lombok To Builder</name>
-    <version>0.2.5</version>
+    <version>0.2.6</version>
     <vendor url="https://github.com/marekpietrasz/lombok-to-builder-plugin">
         Marek Pietrasz
     </vendor>
@@ -20,6 +20,8 @@
 
     <change-notes><![CDATA[
         <ul>
+            <li><b>0.2.6</b> — Replaced a deprecated <code>ReadAction.compute</code> call in the batch
+                action (flagged by newer IDEs); no change to behavior.</li>
             <li><b>0.2.5</b> — Added a plugin icon. Internal: static analysis (detekt) and more tests;
                 no change to conversion behavior.</li>
             <li><b>0.2.4</b> — The batch action (folder/module/project) now runs in a cancellable

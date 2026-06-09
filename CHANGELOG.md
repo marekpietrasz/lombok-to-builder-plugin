@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.6] - 2026-06-09
+
+### Fixed
+- Replaced a deprecated `ReadAction.compute(ThrowableComputable)` call in the batch action (the
+  Marketplace verifier flagged it on 2025.2/2025.3). The folder/module/project file walk runs
+  directly on the background thread — VFS traversal is thread-safe and needs no read action — so the
+  deprecated API is gone. No behavior change.
+
 ## [0.2.5] - 2026-06-09
 
 ### Added
@@ -77,7 +85,8 @@ setter intentions as well as the batch action.
 - Conversions are offered only when the target class is annotated with `@Builder` / `@SuperBuilder`.
 - Compatible with IntelliJ IDEA 2024.2 and newer.
 
-[Unreleased]: https://github.com/marekpietrasz/lombok-to-builder-plugin/compare/v0.2.5...HEAD
+[Unreleased]: https://github.com/marekpietrasz/lombok-to-builder-plugin/compare/v0.2.6...HEAD
+[0.2.6]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.6
 [0.2.5]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.5
 [0.2.4]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.4
 [0.2.3]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.3
