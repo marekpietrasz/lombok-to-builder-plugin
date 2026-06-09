@@ -29,6 +29,9 @@ object LombokBuilderSupport {
 
     private val BUILDER_ANNOTATIONS = setOf("lombok.Builder", "lombok.experimental.SuperBuilder")
 
+    /** The Java setter prefix (`setFoo`). Its length is where the property name starts. */
+    private const val SETTER_PREFIX = "set"
+
     /** A `Foo v = new Foo(...);` declaration immediately followed by `v.setX(...)` statements. */
     data class SetterChain(
         val variable: PsiLocalVariable,
@@ -77,18 +80,30 @@ object LombokBuilderSupport {
         val receiver = builderReceiver(chain.newExpression) ?: return null
         val arguments = chain.newExpression.argumentList?.expressions ?: emptyArray()
 
-        val valueCalls = constructorValueCalls(psiClass, chain.newExpression, arguments, options)?.toMutableList()
-            ?: return null
-        for (call in chain.setterCalls) {
-            val value = call.argumentList.expressions.firstOrNull() ?: return null
-            if (options.skipNullValues && isNullLiteral(value)) continue
-            val methodName = builderMethodName(psiClass, call.methodExpression.referenceName ?: return null)
-            valueCalls += ".$methodName(${value.text})"
-        }
+        val constructorCalls = constructorValueCalls(psiClass, chain.newExpression, arguments, options) ?: return null
+        val setterCalls = setterValueCalls(psiClass, chain.setterCalls, options) ?: return null
+        val valueCalls = constructorCalls + setterCalls
         // Setter blocks are always converted regardless of the minimum-values threshold (that gates
         // constructor calls only); only bail if nothing would be set (e.g. the lone setter was null).
         if (valueCalls.isEmpty()) return null
         return assemble("$receiver.builder()", valueCalls + ".build()", options.multiline)
+    }
+
+    /** `.method(arg)` call strings for a chain's `setX(...)` calls (null values dropped per options),
+     *  or null when a setter call is malformed. */
+    private fun setterValueCalls(
+        psiClass: PsiClass,
+        setterCalls: List<PsiMethodCallExpression>,
+        options: ConversionOptions,
+    ): List<String>? {
+        val calls = mutableListOf<String>()
+        for (call in setterCalls) {
+            val value = call.argumentList.expressions.firstOrNull() ?: return null
+            if (options.skipNullValues && isNullLiteral(value)) continue
+            val methodName = builderMethodName(psiClass, call.methodExpression.referenceName ?: return null)
+            calls += ".$methodName(${value.text})"
+        }
+        return calls
     }
 
     /**
@@ -142,7 +157,7 @@ object LombokBuilderSupport {
 
     /** Naive Lombok builder/field name for a setter: `setFooBar` -> `fooBar`. */
     fun builderFieldName(setterName: String): String =
-        setterName.removePrefix("set").replaceFirstChar { it.lowercaseChar() }
+        setterName.removePrefix(SETTER_PREFIX).replaceFirstChar { it.lowercaseChar() }
 
     /**
      * The Lombok builder method name for [setterName], which equals the backing field name.
@@ -154,7 +169,7 @@ object LombokBuilderSupport {
     private fun builderMethodName(psiClass: PsiClass, setterName: String): String {
         val candidate = builderFieldName(setterName)               // setSomething -> something
         if (psiClass.findFieldByName(candidate, true) != null) return candidate
-        val isField = "is" + setterName.removePrefix("set")        // setSomething -> isSomething
+        val isField = "is" + setterName.removePrefix(SETTER_PREFIX) // setSomething -> isSomething
         val field = psiClass.findFieldByName(isField, true)
         if (field != null && field.type.equalsToText("boolean")) return isField
         return candidate
@@ -171,30 +186,47 @@ object LombokBuilderSupport {
         // Replacing a multi-variable declaration ("Foo a, b;") would be unsafe.
         if (declaration.declaredElements.size != 1) return null
 
-        val setterStatements = mutableListOf<PsiExpressionStatement>()
-        val setterCalls = mutableListOf<PsiMethodCallExpression>()
+        val setters = collectFollowingSetterCalls(declaration, variable)
+        if (setters.isEmpty()) return null
+        val (setterStatements, setterCalls) = setters.unzip()
+        return SetterChain(variable, declaration, newExpression, setterStatements, setterCalls)
+    }
+
+    /** The contiguous `variable.setX(...)` statements immediately following [declaration]. */
+    private fun collectFollowingSetterCalls(
+        declaration: PsiDeclarationStatement,
+        variable: PsiLocalVariable,
+    ): List<Pair<PsiExpressionStatement, PsiMethodCallExpression>> {
+        val setters = mutableListOf<Pair<PsiExpressionStatement, PsiMethodCallExpression>>()
         var sibling = declaration.nextSibling
         while (sibling != null) {
             if (sibling is PsiWhiteSpace || sibling is PsiComment) {
                 sibling = sibling.nextSibling
                 continue
             }
-            val statement = sibling as? PsiExpressionStatement ?: break
-            val call = statement.expression as? PsiMethodCallExpression ?: break
-            if (!isSetterCallOn(call, variable)) break
-            setterStatements += statement
-            setterCalls += call
+            val setter = setterStatementOf(sibling, variable) ?: break
+            setters += setter
             sibling = sibling.nextSibling
         }
-        if (setterCalls.isEmpty()) return null
-        return SetterChain(variable, declaration, newExpression, setterStatements, setterCalls)
+        return setters
+    }
+
+    /** [element] as a `variable.setX(arg)` statement paired with its call, or null when it isn't one. */
+    private fun setterStatementOf(
+        element: PsiElement,
+        variable: PsiLocalVariable,
+    ): Pair<PsiExpressionStatement, PsiMethodCallExpression>? {
+        val statement = element as? PsiExpressionStatement ?: return null
+        val call = statement.expression as? PsiMethodCallExpression ?: return null
+        if (!isSetterCallOn(call, variable)) return null
+        return statement to call
     }
 
     private fun isSetterCallOn(call: PsiMethodCallExpression, variable: PsiLocalVariable): Boolean {
         val qualifier = call.methodExpression.qualifierExpression as? PsiReferenceExpression ?: return false
         if (qualifier.resolve() != variable) return false
         val name = call.methodExpression.referenceName ?: return false
-        if (!name.startsWith("set") || name.length <= 3) return false
+        if (!name.startsWith(SETTER_PREFIX) || name.length <= SETTER_PREFIX.length) return false
         return call.argumentList.expressions.size == 1
     }
 

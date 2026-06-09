@@ -333,4 +333,132 @@ class LombokBuilderEdgeCasesTest : LombokBuilderTestCase() {
             """.trimIndent(),
         )
     }
+
+    fun testGenericClassConstructorDropsTypeArguments() {
+        setMultiline(false)
+        // The builder receiver must be the raw `Box`, not `Box<String>` — `Box<String>.builder()`
+        // is not valid Java. (Lombok generates a static `builder()` on the raw type.)
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Box<T> {
+                T value;
+                String label;
+
+                Box(T value, String label) {}
+
+                static Box<String> make() {
+                    return new B<caret>ox<String>("v", "l");
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.launchAction(myFixture.findSingleIntention(constructorIntention))
+
+        myFixture.checkResult(
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Box<T> {
+                T value;
+                String label;
+
+                Box(T value, String label) {}
+
+                static Box<String> make() {
+                    return Box.builder().value("v").label("l").build();
+                }
+            }
+            """.trimIndent(),
+        )
+    }
+
+    fun testGenericClassSetterChainDropsTypeArguments() {
+        setMultiline(false)
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Box<T> {
+                T value;
+
+                void setValue(T value) {}
+
+                static void use() {
+                    Box<String> b = new B<caret>ox<String>();
+                    b.setValue("v");
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.launchAction(myFixture.findSingleIntention(setterIntention))
+
+        myFixture.checkResult(
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Box<T> {
+                T value;
+
+                void setValue(T value) {}
+
+                static void use() {
+                    Box<String> b = Box.builder().value("v").build();
+                }
+            }
+            """.trimIndent(),
+        )
+    }
+
+    fun testFullyQualifiedConstructorKeepsQualifier() {
+        setMultiline(false)
+        // The @Builder class is referenced by its fully-qualified name at the `new` site; the
+        // generated receiver must keep that qualifier rather than collapse to the simple name.
+        myFixture.addClass(
+            """
+            package demo;
+
+            import lombok.Builder;
+
+            @Builder
+            public class Widget {
+                int a;
+                String b;
+
+                public Widget(int a, String b) {}
+            }
+            """.trimIndent(),
+        )
+        myFixture.configureByText(
+            "Client.java",
+            """
+            class Client {
+                static demo.Widget make() {
+                    return new demo.Wid<caret>get(1, "x");
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.launchAction(myFixture.findSingleIntention(constructorIntention))
+
+        myFixture.checkResult(
+            """
+            class Client {
+                static demo.Widget make() {
+                    return demo.Widget.builder().a(1).b("x").build();
+                }
+            }
+            """.trimIndent(),
+        )
+    }
 }

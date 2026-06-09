@@ -1,0 +1,27 @@
+# Detekt overrides layered on top of the default config (buildUponDefaultConfig = true).
+# Only rules whose defaults clash with this project's deliberate, documented style are tuned here;
+# everything else uses detekt's defaults.
+
+complexity:
+  TooManyFunctions:
+    # LombokBuilderSupport is a single cohesive helper object for one concern (Lombok @Builder
+    # detection + rewriting); splitting it would scatter tightly related logic.
+    thresholdInObjects: 20
+  LongMethod:
+    # Test methods embed before/after Java source as multi-line string fixtures, which inflates
+    # their line count without adding real logic.
+    excludes: ['**/test/**']
+
+style:
+  ReturnCount:
+    # Guard clauses (`val x = expr ?: return null`) are idiomatic Kotlin and read better than the
+    # nested alternatives; don't count them toward the limit.
+    excludeGuardClauses: true
+    max: 4
+  MaxLineLength:
+    # The codebase intentionally uses wider lines for PSI signatures and call chains.
+    maxLineLength: 140
+  LoopWithTooManyJumpStatements:
+    # The sibling-walking loops legitimately skip whitespace/comments (continue) and stop at the
+    # first non-matching statement (break); one of each is clearer than restructuring.
+    maxJumpCount: 2

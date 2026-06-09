@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.5] - 2026-06-09
+
+### Added
+- A plugin icon (light + dark), shown in Settings → Plugins and on the Marketplace listing.
+
+### Internal
+- Wired up detekt static analysis (`./gradlew detekt`) with a project config, and added tests for
+  generic `@Builder` types, fully-qualified `new` expressions, and selection-range handling.
+- Split `chainToBuilderText` / `collectChain` into smaller helpers. No change to conversion behavior.
+
 ## [0.2.4] - 2026-06-09
 
 ### Fixed
@@ -67,7 +77,8 @@ setter intentions as well as the batch action.
 - Conversions are offered only when the target class is annotated with `@Builder` / `@SuperBuilder`.
 - Compatible with IntelliJ IDEA 2024.2 and newer.
 
-[Unreleased]: https://github.com/marekpietrasz/lombok-to-builder-plugin/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/marekpietrasz/lombok-to-builder-plugin/compare/v0.2.5...HEAD
+[0.2.5]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.5
 [0.2.4]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.4
 [0.2.3]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.3
 [0.2.2]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.2

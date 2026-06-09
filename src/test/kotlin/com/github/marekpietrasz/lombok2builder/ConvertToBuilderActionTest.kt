@@ -139,6 +139,56 @@ class ConvertToBuilderActionTest : LombokBuilderTestCase() {
         assertTrue("B.java should be converted", b.text.contains("B.builder().a(1).b(\"x\").build()"))
     }
 
+    fun testSelectionStraddlingSetterChainLeavesItUntouched() {
+        setMultiline(false)
+        // The selection covers the declaration and the first setter but not the second. A setter
+        // chain is folded all-or-nothing, so a chain that isn't fully selected is left as-is.
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                int a;
+                int b;
+
+                void setA(int a) {}
+                void setB(int b) {}
+
+                static void use() {
+                    <selection>Demo d = new Demo();
+                    d.setA(1);</selection>
+                    d.setB(2);
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.testAction(action)
+
+        myFixture.checkResult(
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                int a;
+                int b;
+
+                void setA(int a) {}
+                void setB(int b) {}
+
+                static void use() {
+                    Demo d = new Demo();
+                    d.setA(1);
+                    d.setB(2);
+                }
+            }
+            """.trimIndent(),
+        )
+    }
+
     fun testDisabledWithoutJavaContext() {
         val context = SimpleDataContext.builder()
             .add(CommonDataKeys.PROJECT, project)

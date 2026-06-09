@@ -1,13 +1,15 @@
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "2.1.0"
     id("org.jetbrains.intellij.platform") version "2.5.0"
+    id("io.gitlab.arturbosch.detekt") version "1.23.8"
 }
 
 group = "com.github.marekpietrasz"
-version = "0.2.4"
+version = "0.2.5"
 
 repositories {
     mavenCentral()
@@ -57,6 +59,23 @@ intellijPlatform {
         // Marketplace token from https://plugins.jetbrains.com/author/me/tokens
         token = providers.environmentVariable("PUBLISH_TOKEN")
     }
+
+    // `verifyPlugin` runs the IntelliJ Plugin Verifier against these IDEs — the same check the
+    // JetBrains Marketplace runs on upload. Pin concrete builds (the compatibility floor and a
+    // current release) rather than `recommended()`, which can resolve to not-yet-published builds.
+    pluginVerification {
+        ides {
+            ide(IntelliJPlatformType.IntellijIdeaCommunity, "2024.2.5")
+            ide(IntelliJPlatformType.IntellijIdeaCommunity, "2025.1.7.1")
+        }
+    }
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    config.setFrom("config/detekt/detekt.yml")
+    // Lint the Kotlin sources only; the sample-project is plain Java.
+    source.setFrom("src/main/kotlin", "src/test/kotlin")
 }
 
 kotlin {
