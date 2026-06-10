@@ -29,6 +29,9 @@ Compatible with **IntelliJ IDEA 2024.2 and newer** (no upper version bound).
   constructor).
 - **Convert setters to builder** — caret on a `Foo f = new Foo();` declaration or on any of its
   trailing `f.setX(...)` calls. The declaration plus the contiguous setters fold into one chain.
+- **Inline a returned local** — when the converted local is returned on the very next line, the
+  builder is folded straight into the `return` and the throwaway variable is dropped
+  (`Foo f = Foo.builder()…build(); return f;` → `return Foo.builder()…build();`). Configurable.
 - **Batch conversion** via right-click → *Convert Lombok Usages to Builder*:
   - In the **editor** with **no selection**, the whole file is analyzed.
   - In the **editor** with a **selection**, only that range is converted.
@@ -72,6 +75,15 @@ Compatible with **IntelliJ IDEA 2024.2 and newer** (no upper version bound).
   With it **off**, a block containing any such setter is left entirely as setters (no conversion).
   This applies to the **setters→builder** path only (a constructor can't reference the object it
   creates).
+- **Inline a converted local that is returned on the next line** (default: **on**) — when a just-built
+  local is returned by the immediately following statement, the builder is moved into the `return`
+  and the variable is removed:
+  ```java
+  return User.builder().id(1L).name("Ada").build();   // was: User u = …; return u;
+  ```
+  It only fires on a plain `return u;` directly after the declaration, so a deferred self-referencing
+  setter, a non-trivial return expression (e.g. `return u.copy();`), or an intervening comment leaves
+  the local untouched. With it **off**, the local and its `return` are kept as written.
 
 ## Why a plugin (and not SSR / OpenRewrite)?
 

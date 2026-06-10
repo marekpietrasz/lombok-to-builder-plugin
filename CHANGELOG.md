@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-10
+
+### Added
+- **Returned locals are inlined** as a final step of any conversion. When a freshly-built local is
+  returned on the very next line, the builder is folded into the `return` and the throwaway variable
+  is dropped:
+  ```java
+  // before
+  User u = User.builder().id(1L).name("Ada").build();
+  return u;
+  // after
+  return User.builder().id(1L).name("Ada").build();
+  ```
+  It fires only on a plain `return u;` immediately following the declaration, so a deferred
+  self-referencing setter, a non-trivial return expression (`return u.copy();`), or an intervening
+  comment leaves the local in place. New setting **Inline a converted local that is returned on the
+  next line** (default on) under **Settings → Tools → Lombok To Builder**. Applies to both the
+  constructor and setter paths, the intentions, and the batch action.
+
 ## [0.3.0] - 2026-06-09
 
 ### Added
@@ -101,7 +120,8 @@ setter intentions as well as the batch action.
 - Conversions are offered only when the target class is annotated with `@Builder` / `@SuperBuilder`.
 - Compatible with IntelliJ IDEA 2024.2 and newer.
 
-[Unreleased]: https://github.com/marekpietrasz/lombok-to-builder-plugin/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/marekpietrasz/lombok-to-builder-plugin/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.4.0
 [0.3.0]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.3.0
 [0.2.6]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.6
 [0.2.5]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.5

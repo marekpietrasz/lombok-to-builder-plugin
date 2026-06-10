@@ -48,6 +48,16 @@ class Lombok2BuilderConfigurable : BoundConfigurable("Lombok To Builder") {
                         "whole block is left as setters.",
                 )
             }
+            row {
+                checkBox("Inline a converted local that is returned on the next line")
+                    .bindSelected(settings::inlineReturnedVariable)
+            }
+            row {
+                comment(
+                    "Turns <code>Foo f = Foo.builder()...build(); return f;</code> into " +
+                        "<code>return Foo.builder()...build();</code>, dropping the intermediate variable.",
+                )
+            }
         }
     }
 }

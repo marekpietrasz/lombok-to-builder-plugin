@@ -11,6 +11,11 @@ data class ConversionOptions(
      * unconverted. Applies to the setters→builder path only.
      */
     val deferSelfReferencingSetters: Boolean,
+    /**
+     * When a converted local is immediately returned, `true` drops the local and inlines the builder
+     * into the `return` statement (`Foo f = ...build(); return f;` -> `return ...build();`).
+     */
+    val inlineReturnedVariable: Boolean,
 ) {
     companion object {
         fun fromSettings(): ConversionOptions {
@@ -20,6 +25,7 @@ data class ConversionOptions(
                 skipNullValues = settings.skipNullValues,
                 minValues = settings.minValues,
                 deferSelfReferencingSetters = settings.deferSelfReferencingSetters,
+                inlineReturnedVariable = settings.inlineReturnedVariable,
             )
         }
     }

@@ -23,6 +23,11 @@ class Lombok2BuilderSettings : PersistentStateComponent<Lombok2BuilderSettings.S
          * builder (true) instead of skipping the whole block (false). Defaults to true.
          */
         var deferSelfReferencingSetters: Boolean = true,
+        /**
+         * When a converted local is immediately returned (`Foo f = Foo.builder()...build(); return f;`),
+         * drop the local and inline the builder into the return. Defaults to true.
+         */
+        var inlineReturnedVariable: Boolean = true,
     )
 
     private var state = State()
@@ -55,6 +60,12 @@ class Lombok2BuilderSettings : PersistentStateComponent<Lombok2BuilderSettings.S
         get() = state.deferSelfReferencingSetters
         set(value) {
             state.deferSelfReferencingSetters = value
+        }
+
+    var inlineReturnedVariable: Boolean
+        get() = state.inlineReturnedVariable
+        set(value) {
+            state.inlineReturnedVariable = value
         }
 
     companion object {

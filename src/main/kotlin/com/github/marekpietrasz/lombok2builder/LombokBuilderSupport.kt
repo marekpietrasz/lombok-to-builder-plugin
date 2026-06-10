@@ -14,6 +14,7 @@ import com.intellij.psi.PsiMethodCallExpression
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiNewExpression
 import com.intellij.psi.PsiReferenceExpression
+import com.intellij.psi.PsiReturnStatement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.util.PsiUtil
@@ -298,8 +299,12 @@ object LombokBuilderSupport {
     /** Replaces a constructor call with its builder chain. Returns false if not convertible. */
     fun applyConstructor(newExpression: PsiNewExpression, factory: PsiElementFactory, options: ConversionOptions): Boolean {
         val text = constructorToBuilderText(newExpression, options) ?: return false
+        // The local being initialised, if any — captured before replace so it survives the swap and
+        // can be inlined into a following `return`.
+        val variable = newExpression.parent as? PsiLocalVariable
         val replaced = newExpression.replace(factory.createExpressionFromText(text, newExpression))
         if (options.multiline) reformat(replaced)
+        if (variable != null) inlineReturnedVariable(variable, factory, options)
         return true
     }
 
@@ -313,6 +318,42 @@ object LombokBuilderSupport {
         for (statement in plan.foldedStatements) statement.delete()
         // Deferred (self-referencing) setters stay put so they run after the variable is assigned.
         if (options.multiline) reformat(declaration)
+        // A deferred setter would sit between the declaration and any `return`, so this only fires
+        // when the builder is the variable's last word before it's returned.
+        inlineReturnedVariable(chain.variable, factory, options)
+        return true
+    }
+
+    /**
+     * When [variable]'s single-variable declaration is immediately followed by `return <variable>;`,
+     * folds the initializer into the return and drops the now-pointless local:
+     * `Foo f = Foo.builder()...build(); return f;` -> `return Foo.builder()...build();`.
+     *
+     * No-op (returns false) unless the very next statement returns exactly this variable; a comment
+     * between the two suppresses it, to avoid orphaning the comment. Gated by
+     * [ConversionOptions.inlineReturnedVariable].
+     */
+    fun inlineReturnedVariable(
+        variable: PsiLocalVariable,
+        factory: PsiElementFactory,
+        options: ConversionOptions,
+    ): Boolean {
+        if (!options.inlineReturnedVariable) return false
+        val declaration = variable.parent as? PsiDeclarationStatement ?: return false
+        if (declaration.declaredElements.size != 1) return false
+        val initializer = variable.initializer ?: return false
+        // The next statement, skipping only whitespace — an intervening comment suppresses the inline.
+        var sibling = declaration.nextSibling
+        while (sibling is PsiWhiteSpace) sibling = sibling.nextSibling
+        val returnStatement = sibling as? PsiReturnStatement ?: return false
+        val returned = PsiUtil.skipParenthesizedExprDown(returnStatement.returnValue) as? PsiReferenceExpression ?: return false
+        if (returned.resolve() != variable) return false
+
+        val newReturn = returnStatement.replace(
+            factory.createStatementFromText("return ${initializer.text};", returnStatement),
+        )
+        declaration.delete()
+        if (options.multiline) reformat(newReturn)
         return true
     }
 

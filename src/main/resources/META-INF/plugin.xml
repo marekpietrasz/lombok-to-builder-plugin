@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.github.marekpietrasz.lombok2builder</id>
     <name>Lombok To Builder</name>
-    <version>0.3.0</version>
+    <version>0.4.0</version>
     <vendor url="https://github.com/marekpietrasz/lombok-to-builder-plugin">
         Marek Pietrasz
     </vendor>
@@ -23,6 +23,11 @@
 
     <change-notes><![CDATA[
         <ul>
+            <li><b>0.4.0</b> — A converted local that is returned on the very next line is now inlined
+                into the <code>return</code>, dropping the throwaway variable
+                (<code>Foo f = Foo.builder()&hellip;build(); return f;</code> &rarr;
+                <code>return Foo.builder()&hellip;build();</code>). New setting <em>Inline a converted
+                local that is returned on the next line</em> (default on).</li>
             <li><b>0.3.0</b> — Setter folding now handles self-references: a setter whose value
                 references the object being built (e.g. a child pointing back at its parent) is kept
                 as a trailing setter after the builder instead of producing code that won't compile.
