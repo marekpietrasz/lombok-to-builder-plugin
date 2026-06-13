@@ -16,6 +16,13 @@ data class ConversionOptions(
      * into the `return` statement (`Foo f = ...build(); return f;` -> `return ...build();`).
      */
     val inlineReturnedVariable: Boolean,
+    /**
+     * When a `new Foo(...)` resolves to a hand-written constructor (real source, not itself
+     * `@Builder`-annotated), `false` leaves the call alone — a hand-written constructor may run logic
+     * a builder would bypass. `true` converts it anyway. Applies to the constructor→builder path and
+     * to the constructor part of a setter chain. Defaults to `false`.
+     */
+    val convertHandWrittenConstructors: Boolean,
 ) {
     companion object {
         fun fromSettings(): ConversionOptions {
@@ -26,6 +33,7 @@ data class ConversionOptions(
                 minValues = settings.minValues,
                 deferSelfReferencingSetters = settings.deferSelfReferencingSetters,
                 inlineReturnedVariable = settings.inlineReturnedVariable,
+                convertHandWrittenConstructors = settings.convertHandWrittenConstructors,
             )
         }
     }

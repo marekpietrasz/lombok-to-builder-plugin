@@ -58,11 +58,11 @@ class InlineReturnedVariableTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class Demo {
                 int a;
                 String b;
 
+                @Builder
                 Demo(int a, String b) {}
 
                 static Demo make() {
@@ -79,11 +79,11 @@ class InlineReturnedVariableTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class Demo {
                 int a;
                 String b;
 
+                @Builder
                 Demo(int a, String b) {}
 
                 static Demo make() {
@@ -337,11 +337,11 @@ class InlineReturnedVariableTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class Demo {
                 int a;
                 String b;
 
+                @Builder
                 Demo(int a, String b) {}
 
                 static Demo make() {
@@ -358,11 +358,11 @@ class InlineReturnedVariableTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class Demo {
                 int a;
                 String b;
 
+                @Builder
                 Demo(int a, String b) {}
 
                 static Demo make() {

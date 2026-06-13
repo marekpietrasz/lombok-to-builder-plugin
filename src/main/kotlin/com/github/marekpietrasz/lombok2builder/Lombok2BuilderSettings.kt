@@ -28,6 +28,12 @@ class Lombok2BuilderSettings : PersistentStateComponent<Lombok2BuilderSettings.S
          * drop the local and inline the builder into the return. Defaults to true.
          */
         var inlineReturnedVariable: Boolean = true,
+        /**
+         * When a `new Foo(...)` resolves to a hand-written constructor (real source, not itself
+         * `@Builder`-annotated), convert it anyway (true) or leave it alone (false). A hand-written
+         * constructor may run logic a builder would bypass, so this defaults to false.
+         */
+        var convertHandWrittenConstructors: Boolean = false,
     )
 
     private var state = State()
@@ -66,6 +72,12 @@ class Lombok2BuilderSettings : PersistentStateComponent<Lombok2BuilderSettings.S
         get() = state.inlineReturnedVariable
         set(value) {
             state.inlineReturnedVariable = value
+        }
+
+    var convertHandWrittenConstructors: Boolean
+        get() = state.convertHandWrittenConstructors
+        set(value) {
+            state.convertHandWrittenConstructors = value
         }
 
     companion object {

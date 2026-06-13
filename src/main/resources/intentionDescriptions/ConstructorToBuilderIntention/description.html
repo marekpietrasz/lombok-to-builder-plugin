@@ -7,5 +7,8 @@ Converts a constructor call of a Lombok <code>@Builder</code> class into the equ
 <p>becomes</p>
 <pre><code>Foo f = Foo.builder().a(1).b("x").build();</code></pre>
 <p>Only offered when the target class is annotated with <code>@Builder</code> or <code>@SuperBuilder</code>.</p>
+<p>By default, calls that resolve to a hand-written constructor are left alone, since such a
+constructor may run logic a builder would bypass. Enable <b>Convert calls to hand-written
+constructors</b> under <b>Settings &rarr; Tools &rarr; Lombok To Builder</b> to convert those too.</p>
 </body>
 </html>

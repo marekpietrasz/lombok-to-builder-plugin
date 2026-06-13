@@ -84,6 +84,15 @@ Compatible with **IntelliJ IDEA 2024.2 and newer** (no upper version bound).
   It only fires on a plain `return u;` directly after the declaration, so a deferred self-referencing
   setter, a non-trivial return expression (e.g. `return u.copy();`), or an intervening comment leaves
   the local untouched. With it **off**, the local and its `return` are kept as written.
+- **Convert calls to hand-written constructors** (default: **off**) — a `new Foo(...)` that resolves
+  to a hand-written constructor is left alone, because such a constructor often runs additional logic
+  that a builder would bypass. A constructor Lombok generates from a class-level `@Builder` is
+  synthetic, and a constructor you annotate with `@Builder` directly is the builder's own source, so
+  both of those stay convertible regardless of this setting. Turn it **on** to convert hand-written
+  constructor calls too. Applies to the constructor part of setter chains as well.
+
+  > This relies on JetBrains' **Lombok** plugin to mark the generated constructor as synthetic. Without
+  > it installed, every constructor looks hand-written, so leave this **off** (or enable it knowingly).
 
 ## Why a plugin (and not SSR / OpenRewrite)?
 

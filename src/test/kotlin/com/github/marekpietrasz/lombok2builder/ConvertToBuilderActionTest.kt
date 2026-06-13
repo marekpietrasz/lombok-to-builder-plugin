@@ -16,11 +16,11 @@ class ConvertToBuilderActionTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class Demo {
                 int a;
                 String b;
 
+                @Builder
                 Demo(int a, String b) {}
                 void setA(int a) {}
 
@@ -39,11 +39,11 @@ class ConvertToBuilderActionTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class Demo {
                 int a;
                 String b;
 
+                @Builder
                 Demo(int a, String b) {}
                 void setA(int a) {}
 
@@ -63,11 +63,11 @@ class ConvertToBuilderActionTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class Demo {
                 int a;
                 String b;
 
+                @Builder
                 Demo(int a, String b) {}
 
                 static void use() {
@@ -85,11 +85,11 @@ class ConvertToBuilderActionTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class Demo {
                 int a;
                 String b;
 
+                @Builder
                 Demo(int a, String b) {}
 
                 static void use() {
@@ -107,11 +107,11 @@ class ConvertToBuilderActionTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class $name {
                 int a;
                 String b;
 
+                @Builder
                 $name(int a, String b) {}
 
                 static $name make() {

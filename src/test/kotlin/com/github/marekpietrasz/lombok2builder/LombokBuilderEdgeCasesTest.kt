@@ -176,11 +176,11 @@ class LombokBuilderEdgeCasesTest : LombokBuilderTestCase() {
             import lombok.Builder;
 
             public class Outer {
-                @Builder
                 public static class Inner {
                     int a;
                     String b;
 
+                    @Builder
                     public Inner(int a, String b) {}
                 }
             }
@@ -343,11 +343,11 @@ class LombokBuilderEdgeCasesTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class Box<T> {
                 T value;
                 String label;
 
+                @Builder
                 Box(T value, String label) {}
 
                 static Box<String> make() {
@@ -363,11 +363,11 @@ class LombokBuilderEdgeCasesTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class Box<T> {
                 T value;
                 String label;
 
+                @Builder
                 Box(T value, String label) {}
 
                 static Box<String> make() {
@@ -429,11 +429,11 @@ class LombokBuilderEdgeCasesTest : LombokBuilderTestCase() {
 
             import lombok.Builder;
 
-            @Builder
             public class Widget {
                 int a;
                 String b;
 
+                @Builder
                 public Widget(int a, String b) {}
             }
             """.trimIndent(),

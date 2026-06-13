@@ -226,6 +226,118 @@ class ConstructorToBuilderIntentionTest : LombokBuilderTestCase() {
         assertEmpty(myFixture.filterAvailableIntentions(intentionName))
     }
 
+    fun testNotAvailableForHandWrittenConstructorByDefault() {
+        // @Builder on the class, but the call resolves to a hand-written constructor (params match
+        // fields, so the only reason to skip is that it's hand-written and may carry logic).
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                int a;
+                String b;
+
+                Demo(int a, String b) {}
+
+                static Demo make() {
+                    return new De<caret>mo(1, "x");
+                }
+            }
+            """.trimIndent(),
+        )
+
+        assertEmpty(myFixture.filterAvailableIntentions(intentionName))
+    }
+
+    fun testConvertsHandWrittenConstructorWhenEnabled() {
+        setMultiline(false)
+        setConvertHandWrittenConstructors(true)
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                int a;
+                String b;
+
+                Demo(int a, String b) {}
+
+                static Demo make() {
+                    return new De<caret>mo(1, "x");
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.launchAction(myFixture.findSingleIntention(intentionName))
+
+        myFixture.checkResult(
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                int a;
+                String b;
+
+                Demo(int a, String b) {}
+
+                static Demo make() {
+                    return Demo.builder().a(1).b("x").build();
+                }
+            }
+            """.trimIndent(),
+        )
+    }
+
+    fun testConvertsBuilderAnnotatedConstructorByDefault() {
+        setMultiline(false)
+        // @Builder sits on the constructor itself, so it's the builder's own source: converting its
+        // call is safe and stays available even with the hand-written default.
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            class Demo {
+                int a;
+                String b;
+
+                @Builder
+                Demo(int a, String b) {}
+
+                static Demo make() {
+                    return new De<caret>mo(1, "x");
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.launchAction(myFixture.findSingleIntention(intentionName))
+
+        myFixture.checkResult(
+            """
+            import lombok.Builder;
+
+            class Demo {
+                int a;
+                String b;
+
+                @Builder
+                Demo(int a, String b) {}
+
+                static Demo make() {
+                    return Demo.builder().a(1).b("x").build();
+                }
+            }
+            """.trimIndent(),
+        )
+    }
+
     fun testNotAvailableWithoutBuilder() {
         myFixture.configureByText(
             "Plain.java",

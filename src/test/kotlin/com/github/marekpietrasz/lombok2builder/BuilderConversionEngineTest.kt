@@ -12,12 +12,12 @@ class BuilderConversionEngineTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class Demo {
                 int a;
                 String b;
 
                 Demo() {}
+                @Builder
                 Demo(int a, String b) {}
                 void setA(int a) {}
                 void setB(String b) {}
@@ -55,12 +55,12 @@ class BuilderConversionEngineTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class Demo {
                 int a;
                 String b;
 
                 Demo() {}
+                @Builder
                 Demo(int a, String b) {}
                 void setA(int a) {}
                 void setB(String b) {}
@@ -94,18 +94,18 @@ class BuilderConversionEngineTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class Inner {
                 int x;
                 int y;
 
+                @Builder
                 Inner(int x, int y) {}
             }
 
-            @Builder
             class Outer {
                 Inner inner;
 
+                @Builder
                 Outer(Inner inner) {}
             }
 
@@ -136,11 +136,11 @@ class BuilderConversionEngineTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class Demo {
                 int a;
                 String b;
 
+                @Builder
                 Demo(int a, String b) {}
             }
 
@@ -206,12 +206,12 @@ class BuilderConversionEngineTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class Demo {
                 int a;
                 String b;
 
                 Demo() {}
+                @Builder
                 Demo(int a, String b) {}
                 void setA(int a) {}
             }

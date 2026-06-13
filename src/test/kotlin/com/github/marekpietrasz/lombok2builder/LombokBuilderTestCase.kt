@@ -22,6 +22,7 @@ abstract class LombokBuilderTestCase : LightJavaCodeInsightFixtureTestCase() {
             settings.minValues = 3
             settings.deferSelfReferencingSetters = true
             settings.inlineReturnedVariable = true
+            settings.convertHandWrittenConstructors = false
         } finally {
             super.tearDown()
         }
@@ -45,5 +46,9 @@ abstract class LombokBuilderTestCase : LightJavaCodeInsightFixtureTestCase() {
 
     protected fun setInlineReturnedVariable(value: Boolean) {
         Lombok2BuilderSettings.getInstance().inlineReturnedVariable = value
+    }
+
+    protected fun setConvertHandWrittenConstructors(value: Boolean) {
+        Lombok2BuilderSettings.getInstance().convertHandWrittenConstructors = value
     }
 }

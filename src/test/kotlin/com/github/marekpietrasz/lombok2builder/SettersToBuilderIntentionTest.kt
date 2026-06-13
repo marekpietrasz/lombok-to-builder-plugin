@@ -225,11 +225,11 @@ class SettersToBuilderIntentionTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class Demo {
                 int id;
                 String name;
 
+                @Builder
                 Demo(int id) {}
                 void setName(String name) {}
 
@@ -247,11 +247,11 @@ class SettersToBuilderIntentionTest : LombokBuilderTestCase() {
             """
             import lombok.Builder;
 
-            @Builder
             class Demo {
                 int id;
                 String name;
 
+                @Builder
                 Demo(int id) {}
                 void setName(String name) {}
 
@@ -261,6 +261,34 @@ class SettersToBuilderIntentionTest : LombokBuilderTestCase() {
             }
             """.trimIndent(),
         )
+    }
+
+    fun testNotAvailableForHandWrittenConstructorWithArgsPlusSetters() {
+        // The chain starts with `new Demo(5)` calling a hand-written constructor (not @Builder-
+        // annotated); folding it would drop whatever logic that constructor runs, so by default the
+        // whole block is left as constructor + setters.
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            @Builder
+            class Demo {
+                int id;
+                String name;
+
+                Demo(int id) {}
+                void setName(String name) {}
+
+                static void use() {
+                    Demo d = new De<caret>mo(5);
+                    d.setName("x");
+                }
+            }
+            """.trimIndent(),
+        )
+
+        assertEmpty(myFixture.filterAvailableIntentions(intentionName))
     }
 
     fun testNotAvailableWhenConstructorParamMismatchesField() {

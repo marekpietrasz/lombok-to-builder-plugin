@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-06-13
+
+### Added
+- **Hand-written constructors are left alone by default.** A `new Foo(...)` that resolves to a
+  hand-written constructor is no longer folded into a builder, because such a constructor often runs
+  additional logic that the builder would bypass. The constructor Lombok generates from a class-level
+  `@Builder` is synthetic and a constructor annotated with `@Builder` directly is the builder's own
+  source, so both stay convertible. New setting **Convert calls to hand-written constructors**
+  (default **off**) under **Settings → Tools → Lombok To Builder** opts back in. Applies to the
+  constructor path, the constructor part of a setter chain, the intentions, and the batch action.
+
+  The synthetic-vs-physical distinction relies on JetBrains' **Lombok** plugin being installed; without
+  it every constructor appears hand-written.
+
 ## [0.4.0] - 2026-06-10
 
 ### Added
@@ -121,6 +135,7 @@ setter intentions as well as the batch action.
 - Compatible with IntelliJ IDEA 2024.2 and newer.
 
 [Unreleased]: https://github.com/marekpietrasz/lombok-to-builder-plugin/compare/v0.4.0...HEAD
+[0.5.0]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.5.0
 [0.4.0]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.4.0
 [0.3.0]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.3.0
 [0.2.6]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.2.6

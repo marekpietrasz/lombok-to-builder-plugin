@@ -196,7 +196,15 @@ object LombokBuilderSupport {
         options: ConversionOptions,
     ): List<String>? {
         if (arguments.isEmpty()) return emptyList()
-        val parameters = newExpression.resolveConstructor()?.parameterList?.parameters ?: return null
+        val constructor = newExpression.resolveConstructor() ?: return null
+        // By default, don't fold a hand-written constructor's call into a builder: it may run logic the
+        // builder would bypass. "Hand-written" means physical (real source — unlike the synthetic
+        // constructor Lombok generates from a class-level @Builder) and not itself @Builder-annotated
+        // (a @Builder-annotated constructor *is* the builder's source, so folding its call is safe).
+        if (!options.convertHandWrittenConstructors && constructor.isPhysical && !constructor.isBuilderAnnotated()) {
+            return null
+        }
+        val parameters = constructor.parameterList.parameters
         // Bail on varargs / mismatches where positional->name mapping is ambiguous.
         if (parameters.size != arguments.size) return null
         // The builder method for a constructor argument is the field named after the parameter.
