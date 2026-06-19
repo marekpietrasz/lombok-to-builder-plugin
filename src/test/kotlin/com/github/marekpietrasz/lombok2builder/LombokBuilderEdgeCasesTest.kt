@@ -27,6 +27,33 @@ class LombokBuilderEdgeCasesTest : LombokBuilderTestCase() {
         assertEmpty(myFixture.filterAvailableIntentions(constructorIntention))
     }
 
+    /** An all-null constructor would yield an empty `Foo.builder().build()`, which adds nothing over the
+     *  `new Foo()` it came from, so the call is left unconverted (no intention offered). */
+    fun testAllNullConstructorNotConverted() {
+        setMinValues(3)
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            class Demo {
+                String a;
+                String b;
+                String c;
+
+                @Builder
+                Demo(String a, String b, String c) {}
+
+                static Demo make() {
+                    return new De<caret>mo(null, null, null);
+                }
+            }
+            """.trimIndent(),
+        )
+
+        assertEmpty(myFixture.filterAvailableIntentions(constructorIntention))
+    }
+
     fun testNonIsBooleanFieldUsesPlainName() {
         setMultiline(false)
         myFixture.configureByText(

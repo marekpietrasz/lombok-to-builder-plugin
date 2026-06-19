@@ -60,9 +60,12 @@ Compatible with **IntelliJ IDEA 2024.2 and newer** (no upper version bound).
 - **Skip setting null values** (default: **on**) — drops `.x(null)` calls from the generated chain,
   so `new User(1L, "Ada", null, true)` becomes `User.builder().id(1L).name("Ada").active(true).build()`.
 - **Minimum values to convert** (default: **3**) — applies to **constructor calls only**: a
-  `new Foo(...)` with fewer than this many (non-null) arguments isn't converted, so trivial 1–2
-  value constructors are left alone. **Setter blocks are always converted**, regardless of this
-  setting. Set it to `1` to convert every constructor call.
+  `new Foo(...)` with fewer than this many arguments isn't converted, so trivial 1–2 value
+  constructors are left alone. Arguments are counted *before* null values are skipped, so a long,
+  mostly-`null` call like `new Foo(0, null, null, null, null)` still converts (to
+  `Foo.builder().a(0).build()`). An all-`null` call is left alone — its builder would be an empty
+  `Foo.builder().build()` that adds nothing over `new Foo()`. **Setter blocks are always converted**,
+  regardless of this setting. Set it to `1` to convert every constructor call.
 - **Keep self-referencing setters after the builder** (default: **on**) — handles a setter whose
   value references the object being built (e.g. a child that points back at its parent). Such a
   setter can't go inside the builder — `Parent p = Parent.builder().child(new Child(p))...` would

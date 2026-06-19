@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.github.marekpietrasz.lombok2builder</id>
     <name>Lombok To Builder</name>
-    <version>0.5.0</version>
+    <version>0.5.1</version>
     <vendor url="https://github.com/marekpietrasz/lombok-to-builder-plugin">
         Marek Pietrasz
     </vendor>
@@ -23,6 +23,12 @@
 
     <change-notes><![CDATA[
         <ul>
+            <li><b>0.5.1</b> — Long, mostly-<code>null</code> constructor calls now convert. The
+                <em>Minimum values to convert</em> threshold counts the constructor's arguments
+                (before null values are skipped), so a call like
+                <code>new Foo(0, null, null, null, null)</code> is no longer suppressed; it becomes
+                <code>Foo.builder().a(0).build()</code>. An all-<code>null</code> call is still left
+                alone, since its builder would be an empty <code>Foo.builder().build()</code>.</li>
             <li><b>0.5.0</b> — Calls to hand-written constructors are now left alone by default, since
                 such a constructor may run logic a builder would bypass. A constructor Lombok generates
                 from a class-level <code>@Builder</code>, or one you annotate with <code>@Builder</code>

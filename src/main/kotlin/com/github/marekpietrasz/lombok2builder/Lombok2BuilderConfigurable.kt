@@ -40,8 +40,9 @@ class Lombok2BuilderConfigurable : BoundConfigurable("Lombok To Builder") {
         }
         row {
             comment(
-                "Constructor calls with fewer than this many (non-null) arguments are not " +
-                    "converted. Setter blocks are always converted, regardless of this value.",
+                "Constructor calls with fewer than this many arguments are not converted. Arguments " +
+                    "are counted before null values are skipped, so a long, mostly-<code>null</code> " +
+                    "call still converts. Setter blocks are always converted, regardless of this value.",
             )
         }
     }

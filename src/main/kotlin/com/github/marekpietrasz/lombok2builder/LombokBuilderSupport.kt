@@ -71,8 +71,13 @@ object LombokBuilderSupport {
         val arguments = newExpression.argumentList?.expressions ?: return null
 
         val valueCalls = constructorValueCalls(psiClass, newExpression, arguments, options) ?: return null
-        // The minimum-values threshold gates constructor conversions only.
-        if (valueCalls.size < options.minValues) return null
+        // An empty builder (`Foo.builder().build()`) adds nothing over the `new Foo()` it came from, so
+        // leave the call alone when every argument was null and dropped by skip-nulls.
+        if (valueCalls.isEmpty()) return null
+        // The minimum-values threshold gates constructor conversions only, and counts the constructor's
+        // arguments rather than the values that survive null-skipping. A long, mostly-null call is exactly
+        // what a builder reads best for, so it shouldn't be suppressed just because most arguments are null.
+        if (arguments.size < options.minValues) return null
         return assemble("$receiver.builder()", valueCalls + ".build()", options.multiline)
     }
 

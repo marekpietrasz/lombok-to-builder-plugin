@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-06-19
+
+### Fixed
+- **Long, mostly-`null` constructor calls now convert.** The **Minimum values to convert** threshold
+  counted the values that survive null-skipping, so a call like `new Foo(0, null, null, null, null)`
+  collapsed to a single non-null value and fell below the default threshold of `3` — the very case a
+  builder reads best for was silently skipped. The threshold now counts the constructor's arguments,
+  before null values are dropped, so such a call converts (to `Foo.builder().a(0).build()`). A call
+  whose arguments are *all* null is still left alone, since the result would be an empty
+  `Foo.builder().build()` that adds nothing over `new Foo()`.
+
 ## [0.5.0] - 2026-06-13
 
 ### Added
@@ -134,7 +145,8 @@ setter intentions as well as the batch action.
 - Conversions are offered only when the target class is annotated with `@Builder` / `@SuperBuilder`.
 - Compatible with IntelliJ IDEA 2024.2 and newer.
 
-[Unreleased]: https://github.com/marekpietrasz/lombok-to-builder-plugin/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/marekpietrasz/lombok-to-builder-plugin/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.5.1
 [0.5.0]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.5.0
 [0.4.0]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.4.0
 [0.3.0]: https://github.com/marekpietrasz/lombok-to-builder-plugin/releases/tag/v0.3.0

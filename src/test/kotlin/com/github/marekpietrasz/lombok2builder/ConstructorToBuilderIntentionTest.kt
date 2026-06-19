@@ -203,6 +203,57 @@ class ConstructorToBuilderIntentionTest : LombokBuilderTestCase() {
         assertEmpty(myFixture.filterAvailableIntentions(intentionName))
     }
 
+    /** The threshold counts constructor arguments, not the values that survive null-skipping, so a
+     *  long, mostly-null call (the case a builder reads best for) still converts. */
+    fun testConvertsMostlyNullConstructorAboveArgumentThreshold() {
+        setMinValues(3)
+        setMultiline(false)
+        myFixture.configureByText(
+            "Demo.java",
+            """
+            import lombok.Builder;
+
+            class Demo {
+                int a;
+                String b;
+                String c;
+                String d;
+                String e;
+
+                @Builder
+                Demo(int a, String b, String c, String d, String e) {}
+
+                static Demo make() {
+                    return new De<caret>mo(0, null, null, null, null);
+                }
+            }
+            """.trimIndent(),
+        )
+
+        myFixture.launchAction(myFixture.findSingleIntention(intentionName))
+
+        myFixture.checkResult(
+            """
+            import lombok.Builder;
+
+            class Demo {
+                int a;
+                String b;
+                String c;
+                String d;
+                String e;
+
+                @Builder
+                Demo(int a, String b, String c, String d, String e) {}
+
+                static Demo make() {
+                    return Demo.builder().a(0).build();
+                }
+            }
+            """.trimIndent(),
+        )
+    }
+
     fun testNotAvailableWhenParameterDoesNotMatchField() {
         myFixture.configureByText(
             "Demo.java",

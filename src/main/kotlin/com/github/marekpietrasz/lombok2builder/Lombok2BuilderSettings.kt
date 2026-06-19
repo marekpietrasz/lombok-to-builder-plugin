@@ -16,7 +16,8 @@ class Lombok2BuilderSettings : PersistentStateComponent<Lombok2BuilderSettings.S
         var multiline: Boolean = true,
         /** When true, `.x(null)` calls are dropped from the generated chain. Defaults to true. */
         var skipNullValues: Boolean = true,
-        /** Don't convert when fewer than this many (non-null) values would be set. Defaults to 3. */
+        /** Don't convert a constructor call with fewer than this many arguments (counted before null
+         *  values are skipped). Defaults to 3. */
         var minValues: Int = 3,
         /**
          * When a setter references the object being built, keep it as a trailing setter after the
